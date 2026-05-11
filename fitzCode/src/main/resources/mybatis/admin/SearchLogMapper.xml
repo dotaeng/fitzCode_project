@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.fitzcode.admin.mapper.SearchLogMapper">
+    <!-- 검색어가 PRODUCT 또는 CATEGORY 또는 브랜드에 포함되는지 확인 -->
+    <select id="countValidKeyword" resultType="long">
+        SELECT COUNT(*) AS count
+        FROM (
+        SELECT product_name FROM PRODUCT WHERE product_name LIKE CONCAT('%', #{keyword}, '%')
+        UNION
+        SELECT brand FROM PRODUCT WHERE brand LIKE CONCAT('%', #{keyword}, '%')
+        UNION
+        SELECT name FROM CATEGORY WHERE name LIKE CONCAT('%', #{keyword}, '%')
+        ) AS valid_keywords
+    </select>
+
+    <!-- search_log에 데이터 삽입 -->
+    <insert id="insertSearchLog">
+        INSERT INTO search_log (user_id, search_keyword, search_time)
+        VALUES (#{userId,jdbcType=INTEGER}, #{keyword}, NOW())
+    </insert>
+</mapper>

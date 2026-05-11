@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <link rel="stylesheet" th:href="@{/css/user/myInfo.css}">
+    <link rel="stylesheet" th:href="@{/css/user/updateProfile.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+<body>
+
+<!-- header -->
+<div th:replace="~{fragments/header}"></div>
+
+<br><br><br><br>
+<div class="mypageContainer">
+    <!-- navi -->
+    <div th:replace="~{fragments/mypageNavi}"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="mypageContent">
+        <h2>내 정보</h2>
+        <div id="hr"></div>
+        <div class="myInfo">
+            <form th:action="@{/mypage/updateProfile}" method="post" enctype="multipart/form-data">
+            <div class="userProfileInfo">
+                <div id="updateProfile">
+                    <div id="updateProfileDiv">
+                        <div class="updateProfileInfo"><h4>사진변경</h4><input type="file" name="profileImgUrl"></div>
+                        <div class="updateProfileInfo"><h4>닉네임</h4><input type="text" name="nickname" th:value="${dto.nickname}"></div>
+                    </div>
+                </div>
+                <div id="updateProfileLink">
+                    <input type="hidden" name="userId" th:value="${dto.userId}">
+                    <button type="submit">프로필 저장</button>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<!-- footer -->
+<div th:replace="~{fragments/footer}"></div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</html>

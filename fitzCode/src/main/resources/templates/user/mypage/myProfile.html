@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <link rel="stylesheet" th:href="@{/css/user/myInfo.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+<body>
+
+<!-- header -->
+<div th:replace="~{fragments/header}"></div>
+
+<br><br><br><br>
+<div class="mypageContainer">
+    <!-- navi -->
+    <div th:replace="~{fragments/mypageNavi}"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="mypageContent">
+        <h2>내 정보</h2>
+        <div id="hr"></div>
+        <div class="myInfo">
+            <div class="userProfileInfo">
+                <div id="profileImage">
+                    <!-- profileImage가 null이면  기본 이미지 표시 -->
+                    <img th:src="${userDTO != null and userDTO.profileImage != null} ? ${userDTO.profileImage} : '/img/default-profile.png'"
+                         th:alt="${userDTO != null and userDTO.nickname != null} ? ${userDTO.nickname} + '의 프로필' : '기본 프로필 사진'"
+                         class="profile-image"/>
+                </div>
+                <div id="profileInfo">
+                    <div>
+                        <p th:text="${userDTO != null} ? ${userDTO.nickname} : '사용자 정보 없음'"
+                           style="font-weight: bold; font-size: 17.5px;"></p>
+                        <p th:text="${userDTO != null and userDTO.tier != null} ? 'Lv.' + ${userDTO.tier.description} : 'Lv. 정보 없음'"
+                           class="userTier"></p>
+                    </div>
+                </div>
+                <div id="updateProfileLink">
+                    <a th:href="@{/mypage/updateProfile}" th:if="${userDTO != null}">프로필 수정</a>
+                    <!--                    <p th:if="${userDTO == null}">프로필 수정 불가</p>-->
+                </div>
+            </div>
+            <div class="userShoppingInfo">
+                <div id="trackingInfo">
+                    <h3>주문 내역</h3>
+                    <th:block th:if="${orderDTO.size() > 0 && orderDTO != null}">
+                        <table>
+                            <tr>
+                                <th>주문 번호</th>
+                                <th>주문 상태</th>
+                                <th>주문 날짜</th>
+                                <th>배송 현황</th>
+                                <th>배송 조회</th>
+                                <th></th>
+                            </tr>
+                            <tr th:each="dto : ${orderDTO}">
+                                <td th:text="${dto.orderId}"></td> <!-- 주문 번호 -->
+                                <td th:text="${dto.getStatus().description}"></td> <!-- 주문 상태 -->
+                                <td th:text="${dto.formattedCreatedAt}"></td> <!-- 주문 날짜 -->
+                                <th:block th:if="${dto.trackingNumber != null}"> <!-- 운송장 번호 -->
+                                    <td th:text="${dto.deliveryStatus.description}"></td>
+                                    <td style="padding: 0px">
+                                        <button class="searchTracking">배송조회</button>
+                                        <input type="hidden" id="trackingNumber" th:value="${dto.trackingNumber}">
+                                    </td>
+                                </th:block>
+                                <th:block th:unless="${dto.trackingNumber != null}">
+                                    <td style="padding: 0px; color: #888888">-</td>
+                                </th:block>
+                            </tr>
+                        </table>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<!-- 택배 추적 모달 -->
+<div class="hidden" id="modalContainer">
+    <div id="modalContent">
+        <div class="modalCloseBtn">×</div>
+        <div>
+            <div id="msg"></div>
+            <span id="deliveryCompany"></span>
+        </div>
+        <table class="table" id="trackingData"></table>
+        <button class="modalCloseBtn" id="close-search">확인</button>
+    </div>
+</div>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<!-- footer -->
+<div th:replace="~{fragments/footer}"></div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<!-- 스마트 택배 API -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+<script th:src="@{/js/user/delivery.js}"></script>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</html>

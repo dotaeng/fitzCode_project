@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.fitzcode.inquiry.mapper.InquiryMapper">
+
+    <resultMap id="inquiryMap" type="InquiryDTO">
+        <result property="inquiryId" column="inquiry_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="phoneNumber" column="phone_number"/>
+        <result property="orderId" column="order_id"/>
+        <result property="subject" column="subject"/>
+        <result property="content" column="content"/>
+        <result property="categoryCode" column="category"/>
+        <result property="statusCode" column="status"/>
+        <result property="reply" column="reply"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="productId" column="product_id"/>
+        <result property="productName" column="product_name"/>
+        <result property="productImgUrl" column="image_url"/>
+        <result property="brand" column="brand"/>
+        <result property="description" column="description"/>
+        <result property="price" column="price"/>
+    </resultMap>
+
+    <resultMap id="productMap" type="ProductDTO">
+        <result property="productId" column="product_id"/>
+        <result property="productName" column="product_name"/>
+        <result property="description" column="description"/>
+        <result property="brand" column="brand"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="orderId" column="order_id"/>
+    </resultMap>
+
+    <!-- 사용자 정보 불러오기 -->
+    <select id="getUserOne" parameterType="int" resultMap="inquiryMap">
+        SELECT
+            user_id,
+            user_name,
+            phone_number
+        FROM USER
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 이미지 저장 -->
+    <insert id="saveImages" parameterType="InquiryImageDTO">
+        INSERT INTO INQUIRY_IMAGE
+        (inquiry_id, image_url, image_order)
+        VALUES (#{imageDTO.inquiryId}, #{imageDTO.imageUrl}, #{imageDTO.imageOrder})
+    </insert>
+
+    <!-- 문의 내용 저장 -->
+    <insert id="saveInquiry" useGeneratedKeys="true" keyProperty="inquiryId" parameterType="InquiryDTO">
+        INSERT INTO INQUIRY
+        (user_id, order_id, subject, content, category, status, product_id)
+        VALUES (#{inquiryDTO.userId}, #{inquiryDTO.orderId}, #{inquiryDTO.subject}, #{inquiryDTO.content},
+        #{inquiryDTO.categoryCode}, #{inquiryDTO.statusCode}, #{inquiryDTO.productId})
+    </insert>
+
+    <!-- 개인별 문의내역 불러오기 -->
+    <select id="getInquiryList" parameterType="int" resultMap="inquiryMap">
+        SELECT
+            inquiry_id,
+            subject,
+            category,
+            status,
+            created_at
+        FROM INQUIRY
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 문의 상세보기 -->
+    <select id="getInquiryDetail" parameterType="int" resultMap="inquiryMap">
+        SELECT
+            i.inquiry_id,
+            i.subject,
+            i.content,
+            i.category,
+            i.status,
+            i.reply,
+            i.created_at,
+            u.user_name,
+            u.phone_number,
+            p.image_url,
+            p.product_name,
+            p.brand,
+            p.description,
+            p.price
+        FROM USER u
+        LEFT JOIN INQUIRY i ON (u.user_id = i.user_id)
+        LEFT JOIN PRODUCT p ON (i.product_id = p.product_id)
+        WHERE i.inquiry_id = #{inquiryId}
+    </select>
+
+
+
+    <!-- 이미지 리스트 -->
+    <select id="getInquiryImageList" parameterType="int" resultType="InquiryImageDTO">
+        SELECT
+            image_url   AS imageUrl
+        FROM INQUIRY_IMAGE
+        WHERE inquiry_id = #{inquiryId}
+    </select>
+
+    <!-- 상품 검색 -->
+    <select id="searchProduct" parameterType="String" resultMap="productMap">
+        SELECT
+        product_id,
+        product_name,
+        description,
+        brand,
+        image_url,
+        price,
+        discounted_price,
+        created_at
+        FROM PRODUCT
+        WHERE 1 = 1
+        <if test="userInput != null and userInput != ''">
+            AND REPLACE(product_name,' ','') LIKE CONCAT('%', REPLACE(#{userInput},' ',''), '%')
+        </if>
+    </select>
+
+    <!-- 주문 내역 불러오기 -->
+    <select id="getOrderList" parameterType="int" resultMap="productMap" >
+        SELECT
+            p.product_id,
+            p.brand,
+            p.description,
+            p.product_name,
+            p.image_url,
+            p.price,
+            p.discounted_price,
+            p.created_at,
+            o.order_id
+        FROM PRODUCT p
+        JOIN ORDER_DETAIL od ON (od.product_id = p.product_id)
+        JOIN ORDERS o ON (od.order_id = o.order_id)
+        JOIN USER u ON (o.user_id = u.user_id)
+        WHERE u.user_id = #{userId}
+    </select>
+
+    <!-- 선택된 상품 -->
+    <select id="selectedProduct" parameterType="int" resultMap="productMap">
+        SELECT
+            p.product_id,
+            p.product_name,
+            p.description,
+            p.brand,
+            p.image_url,
+            p.price,
+            p.discounted_price,
+            p.created_at,
+            od.order_id
+        FROM PRODUCT p
+        LEFT JOIN ORDER_DETAIL od ON (od.product_id = p.product_id)
+        WHERE p.product_id = #{productId}
+    </select>
+
+    <!-- 문의 수정 -->
+    <update id="updateInquiryData" parameterType="InquiryDTO">
+        UPDATE INQUIRY
+        SET
+        subject = #{inquiryDTO.subject},
+        content = #{inquiryDTO.content},
+        order_id = #{inquiryDTO.orderId},
+        product_id = #{inquiryDTO.productId}
+        WHERE inquiry_id = #{inquiryDTO.inquiryId}
+    </update>
+
+    <!-- 문의 이미지 삭제 -->
+    <delete id="deleteInquiryImages" parameterType="int">
+        DELETE
+        FROM INQUIRY_IMAGE
+        WHERE inquiry_id = #{inquiryId}
+    </delete>
+
+    <!-- 문의 데이터 삭제 -->
+    <delete id="deleteInquiryData" parameterType="int">
+        DELETE
+        FROM INQUIRY
+        WHERE inquiry_id = #{inquiryId}
+    </delete>
+</mapper>

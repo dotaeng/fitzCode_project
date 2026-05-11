@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            color: #333;
+            display: flex;
+            height: 100vh;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 0 40px 40px 40px;
+            max-width: 1200px;
+            margin: 0;
+            margin-left: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            margin-top: 100px;
+            width: 100%;
+        }
+        .content h3 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+            border-bottom: 2px solid #2f2f32;
+            padding-bottom: 5px;
+            display: inline-block;
+        }
+        .write-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2f2f32;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        .write-btn:hover {
+            background-color: #2980b9;
+        }
+        .notice-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .notice-table thead {
+            background-color: #2f2f32;
+            color: white;
+            text-align: center;
+        }
+        .notice-table th {
+            padding: 12px 15px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .notice-table tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: background-color 0.2s ease;
+        }
+        .notice-table tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+        .notice-table td {
+            padding: 12px 15px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .notice-table td a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .notice-table td a:hover {
+            color: #3498db;
+            text-decoration: underline;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            padding-bottom: 20px;
+            width: 100%;
+            margin-right: 70px;
+        }
+        .pagination a {
+            text-decoration: none;
+            color: #333;
+            padding: 8px 12px;
+            margin: 0 5px;
+            font-size: 14px;
+        }
+        .pagination a:hover {
+            color: #3498db;
+        }
+        .pagination a.disabled {
+            color: #999;
+            pointer-events: none;
+        }
+        .pagination .active {
+            color: #2f2f32;
+            font-weight: bold;
+        }
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .content {
+                padding: 15px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .write-btn {
+                margin-top: 10px;
+                width: 100%;
+                text-align: center;
+            }
+            .notice-table th, .notice-table td {
+                font-size: 12px;
+                padding: 10px;
+            }
+            .pagination {
+                flex-direction: row;
+                align-items: center;
+            }
+            .pagination a {
+                margin: 0 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar" th:replace="~{fragments/managerSidebar}"></div>
+<div class="content">
+    <div class="header">
+        <h3>공지사항 목록</h3>
+        <a href="/admin/notice/add" th:href="@{/admin/notice/add}" class="write-btn">글쓰기</a>
+    </div>
+    <table class="notice-table">
+        <thead>
+        <tr>
+            <th>번호</th>
+            <th>제목</th>
+            <th>작성일</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="notice, iterStat : ${notices}">
+            <td th:text="${iterStat.count + (currentPage - 1) * size}"></td> <!-- 번호 계산 (size 사용) -->
+            <td>
+                <a th:href="@{/admin/notice/{id}(id=${notice.noticeId})}" th:text="${notice.title}"></a>
+            </td>
+            <td th:text="${#temporals.format(notice.createdAt, 'yy/MM/dd')}"></td>
+        </tr>
+        <tr th:if="${notices.isEmpty()}">
+            <td colspan="3">공지사항이 없습니다.</td>
+        </tr>
+        </tbody>
+    </table>
+    <!-- 페이지네이션 추가 -->
+    <div class="pagination" th:if="${totalPages > 1}">
+        <a th:href="@{/admin/notice(page=${currentPage - 1})}" th:class="${currentPage == 1} ? 'disabled'" th:text="'<'"></a>
+        <a th:each="page : ${pageNumbers}"
+           th:href="@{/admin/notice(page=${page})}"
+           th:text="${page}"
+           th:class="${page == currentPage} ? 'active'"></a>
+        <a th:href="@{/admin/notice(page=${currentPage + 1})}" th:class="${currentPage == totalPages} ? 'disabled'" th:text="'>'"></a>
+    </div>
+</div>
+</body>
+</html>

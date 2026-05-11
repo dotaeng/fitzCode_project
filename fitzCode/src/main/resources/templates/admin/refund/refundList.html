@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <link rel="stylesheet" th:href="@{/css/admin/productList.css}" />
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Apple SD Gothic Neo', sans-serif;
+        }
+
+        .container {
+            display: flex;
+            height: auto;
+            justify-content: center;
+            width: 100%;
+            max-width: 1300px;
+        }
+
+        .sidebar-wrapper {
+            flex: 0 0 250px;
+            margin-right: 20px;
+        }
+
+        .content-wrapper {
+            margin: 50px 0;
+            width: calc(100% - 270px);
+            max-width: 1000px;
+            padding: 0 20px;
+            flex-grow: 1;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2f2f32;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #2f2f32;
+            padding-bottom: 5px;
+            display: inline-block;
+        }
+
+        .filter-form {
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        .filter-form label {
+            font-weight: 500;
+            color: #2f2f32;
+        }
+
+        .filter-form select#status {
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 94px;
+        }
+
+        .filter-form input[type="text"] {
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 125px;
+            margin-left: 10px;
+        }
+
+        .filter-form button {
+            padding: 8px 16px;
+            background-color: #2f2f32;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .filter-form button:hover {
+            background-color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        thead {
+            background-color: #2f2f32;
+            color: #fff;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        td a {
+            text-decoration: none;
+            color: #2f2f32;
+            font-weight: 500;
+        }
+
+        td a:hover {
+            color: #333;
+            text-decoration: underline;
+        }
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .pagination a {
+            padding: 5px 10px;
+            margin: 0 5px;
+            text-decoration: none;
+            color: #2f2f32;
+            border: none;
+            background: none;
+        }
+
+        .pagination a.active {
+            font-weight: bold;
+            color: #2f2f32;
+        }
+
+        .pagination a:hover:not(.active) {
+            color: #333;
+        }
+
+        div[th:if="${errorMessage}"] {
+            color: #dc3545;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #ffebee;
+            border-radius: 4px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar-wrapper {
+                flex: 0 0 100%;
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+
+            .content-wrapper {
+                margin: 20px 0;
+                width: 100%;
+                padding: 15px;
+            }
+
+            .filter-form {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filter-form select,
+            .filter-form input[type="text"],
+            .filter-form button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            th, td {
+                font-size: 12px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 사이드바 -->
+<div th:replace="~{fragments/managerSidebar}"></div>
+
+<div class="container">
+    <div class="content-wrapper">
+        <h2>환불 요청 목록</h2>
+
+        <!-- 필터링 폼 -->
+        <div class="filter-form">
+            <form th:action="@{/admin/products/refund}" method="get">
+                <label for="status">상태:</label>
+                <select name="status" id="status">
+                    <option value="">모두</option>
+                    <option th:each="statusCode : ${T(kr.co.fitzcode.common.enums.RefundStatus).values()}"
+                            th:value="${statusCode.code}"
+                            th:selected="${status == statusCode.code}"
+                            th:text="${statusCode.description}"></option>
+                </select>
+                <label for="orderId">주문 ID:</label>
+                <input type="text" name="orderId" id="orderId" th:value="${orderId}"/>
+                <button type="submit">검색</button>
+            </form>
+        </div>
+
+        <!-- 환불 목록 테이블 -->
+        <table>
+            <thead>
+            <tr>
+                <th>환불 ID</th>
+                <th>주문 ID</th>
+                <th>결제 ID</th>
+                <th>요청 환불 금액</th>
+                <th>환불 상태</th>
+                <th>요청 날짜</th>
+                <th>상세</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="refund : ${refunds}">
+                <td th:text="${refund.refundId}"></td>
+                <td th:text="${refund.orderId}"></td>
+                <td th:text="${refund.paymentId}"></td>
+                <td th:text="${#numbers.formatInteger(refund.getRequestedRefundAmount(), 3, 'COMMA')} + '원'"></td>
+                <td th:text="${refund.getRefundStatusInKorean()}"></td>
+                <td th:text="${#temporals.format(refund.requestedAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                <td><a th:href="@{/admin/products/refund/{refundId}(refundId=${refund.refundId})}">상세보기</a></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- 페이징 -->
+        <div class="pagination">
+            <a th:href="@{/admin/products/refund(page=1, size=${size}, status=${status}, orderId=${orderId})}"><</a>
+            <a th:each="p : ${#numbers.sequence(1, totalPages)}"
+               th:href="@{/admin/products/refund(page=${p}, size=${size}, status=${status}, orderId=${orderId})}"
+               th:class="${p == currentPage} ? 'active'"
+               th:text="${p}"></a>
+            <a th:href="@{/admin/products/refund(page=${totalPages}, size=${size}, status=${status}, orderId=${orderId})}">></a>
+        </div>
+
+        <!-- 오류 메시지 -->
+        <div th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    </div>
+</div>
+</body>
+</html>

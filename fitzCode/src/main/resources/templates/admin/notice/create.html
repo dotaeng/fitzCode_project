@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      color: #333;
+      display: flex;
+      height: 100vh;
+    }
+    .content {
+      flex-grow: 1;
+      padding: 0 40px 40px 40px;
+      max-width: 1200px;
+      margin: 0;
+      margin-left: 50px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      margin-top: 100px;
+    }
+
+    .h3-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin: 0;
+      border-bottom: 2px solid #2f2f32;
+      padding-bottom: 5px;
+      display: inline-block;
+      margin-left: 18px;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    label {
+      font-weight: 500;
+      color: #2c3e50;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .note-editor {
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    .note-btn {
+      background-color: #2f2f32 !important;
+      border-color: #2f2f32 !important;
+      color: white !important;
+    }
+
+    .note-btn:hover {
+      background-color: #2980b9 !important;
+    }
+
+    button[type="submit"] {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #2f2f32;
+      color: white;
+      text-decoration: none;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #2980b9;
+    }
+
+    .button-container {
+      text-align: right;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+      }
+
+      .content {
+        padding: 15px;
+        margin-left: 0;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-top: 20px;
+      }
+
+      .button-container {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar" th:replace="~{fragments/managerSidebar}"></div>
+
+<div class="content">
+  <div class="header">
+    <h3 class="h3-title">공지사항 작성</h3>
+  </div>
+  <form th:action="@{/admin/notice}" method="post" enctype="multipart/form-data">
+    <div>
+      <label for="title">제목:</label>
+      <input type="text" id="title" name="title" th:value="${notice?.title}" required>
+    </div>
+    <div>
+      <label for="content">내용:</label>
+      <textarea id="content" name="content" th:text="${notice?.content}" required></textarea>
+    </div>
+    <div>
+      <label for="imageFile">이미지:</label>
+      <input type="file" id="imageFile" name="imageFile" accept="image/*">
+    </div>
+    <div>
+      <label for="attachmentFile">첨부 파일 (HWP, XLS, XLSX, DOC, DOCX):</label>
+      <input type="file" id="attachmentFile" name="attachmentFile" accept=".hwp,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+    </div>
+    <div class="button-container">
+      <button type="submit">작성</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  $(document).ready(function() {
+    $('#content').summernote({
+      height: 300,
+      minHeight: null,
+      maxHeight: null,
+      focus: true,
+      placeholder: '내용을 입력하세요...',
+      toolbar: [
+        ['style', ['bold', 'italic', 'underline', 'clear']],
+        ['font', ['strikethrough', 'superscript', 'subscript']],
+        ['fontsize', ['fontsize']],
+        ['color', ['color']],
+        ['para', ['ul', 'ol', 'paragraph']],
+        ['height', ['height']],
+        ['insert', ['link', 'table']], // picture 제거
+        ['view', ['fullscreen', 'codeview']]
+      ]
+    });
+
+    // 첨부 파일 형식 및 크기 제한
+    $('#attachmentFile').on('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        // 파일 크기 제한 (예: 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          alert('파일 크기는 10MB를 초과할 수 없습니다.');
+          e.target.value = '';
+          return;
+        }
+        // 파일 형식 제한
+        const allowedTypes = [
+          'application/x-hwp',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        if (!allowedTypes.includes(file.type)) {
+          alert('허용된 파일 형식(HWP, XLS, XLSX, DOC, DOCX)이 아닙니다.');
+          e.target.value = '';
+          return;
+        }
+      }
+    });
+  });
+</script>
+</body>
+</html>

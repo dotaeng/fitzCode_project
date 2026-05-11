@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      color: #333;
+      display: flex;
+      height: 100vh;
+    }
+
+    .content {
+      flex-grow: 1;
+      padding: 0 40px 40px 40px;
+      max-width: 1200px;
+      margin-left: 116px;
+      margin-right: 116px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      margin-top: 100px;
+    }
+
+    .h3-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin: 0;
+      border-bottom: 2px solid #2f2f32;
+      padding-bottom: 5px;
+      display: inline-block;
+      margin-left: 18px;
+    }
+
+    .notice-detail {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .notice-detail h2 {
+      font-size: 28px;
+      color: #2c3e50;
+      margin: 0 0 15px 0;
+      font-weight: 600;
+    }
+
+    .notice-detail p {
+      margin: 10px 0;
+      font-size: 14px;
+    }
+
+    .notice-detail p strong {
+      color: #2c3e50;
+      font-weight: 500;
+    }
+
+    .content-container {
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+      padding: 20px;
+      margin-top: 15px;
+      margin-bottom: 20px;
+    }
+
+    .content-container .content-text {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .content-container .notice-image {
+      margin-bottom: 0;
+    }
+
+    .content-container .notice-image img {
+      width: 600px;
+      height: 400px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+
+    .notice-attachment {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .notice-attachment img {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+
+    .notice-attachment a {
+      color: #2f2f32;
+      text-decoration: none;
+    }
+
+    .notice-attachment a:hover {
+      text-decoration: underline;
+    }
+
+    .notice-attachment .file-size {
+      color: #666;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+
+    .button-container {
+      text-align: right;
+      margin-top: -30px;
+      padding-bottom: 50px;
+    }
+
+    .edit-btn, .delete-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+      margin-left: 10px;
+    }
+
+    .edit-btn {
+      background-color: #2f2f32;
+      color: white;
+    }
+
+    .edit-btn:hover {
+      background-color: #2980b9;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+      color: white;
+      margin-right: 19px;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+      }
+
+      .content {
+        padding: 15px;
+        margin-left: 0;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-top: 20px;
+      }
+
+      .button-container {
+        text-align: center;
+      }
+
+      .edit-btn, .delete-btn {
+        margin: 5px 0;
+        width: 100%;
+        text-align: center;
+      }
+
+      .content-container .notice-image img {
+        width: 100%;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar" th:replace="~{fragments/managerSidebar}"></div>
+
+<div class="content">
+  <div class="header">
+    <h3 class="h3-title">공지사항 상세보기</h3>
+  </div>
+  <div class="notice-detail">
+    <h2 th:text="${notice.title}">공지사항 제목</h2>
+    <p><strong>작성일:</strong> <span th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm:ss')}">작성일</span></p>
+    <p><strong>수정일:</strong> <span th:text="${notice.updatedAt != null ? #temporals.format(notice.updatedAt, 'yyyy-MM-dd HH:mm:ss') : '수정되지 않음'}">수정일</span></p>
+    <div class="notice-attachment" th:if="${notice.attachmentUrl}">
+      <p>
+        <img th:src="@{/img/attachments.png}" alt="첨부 파일 아이콘">
+        <a th:href="@{/admin/notice/{id}/download(id=${notice.noticeId})}" th:text="${notice.attachmentName}"></a>
+        <span class="file-size" th:if="${notice.attachmentSize != null}" th:text="${#numbers.formatDecimal(notice.attachmentSize / 1024.0 / 1024.0, 1, 2) + ' MB'}"></span>
+        <span class="file-size" th:if="${notice.attachmentSize == null}">-</span>
+      </p>
+    </div>
+    <div class="content-container">
+      <div class="content-text" th:utext="${notice.content}">공지사항 내용</div>
+      <div class="notice-image" th:if="${notice.imageUrl}">
+        <img th:src="${notice.imageUrl}" alt="공지사항 대표 이미지">
+      </div>
+    </div>
+  </div>
+  <div class="button-container">
+    <a href="/admin/notice/{id}/edit" th:href="@{/admin/notice/{id}/edit(id=${notice.noticeId})}" class="edit-btn">수정</a>
+    <a href="/admin/notice/{id}/delete" th:href="@{/admin/notice/{id}/delete(id=${notice.noticeId})}" class="delete-btn">삭제</a>
+  </div>
+</div>
+<script>
+  document.querySelector('.delete-btn').addEventListener('click', function(e) {
+    if (!confirm('정말 삭제하시겠습니까?')) {
+      e.preventDefault();
+    }
+  });
+</script>
+</body>
+</html>

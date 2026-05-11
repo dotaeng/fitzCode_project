@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      xmlns:sec="http://www.springframework.org/schema/security">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div th:fragment="reviewDoughnut(reviewCounts)" th:if="${not #maps.isEmpty(reviewCounts)}">
+    <canvas id="reviewDoughnutChart"></canvas>
+    
+    <script th:inline="javascript">
+        const Utils = {
+            CHART_COLORS: {
+                deepGreen: 'rgba(0,153,0)',
+                lightGreen: 'rgb(0,204,102)',
+                yellow: 'rgb(128, 128, 128)',
+                orange: 'rgb(255, 165, 0)',
+                red: 'rgb(255, 15, 15)'
+            }
+        };
+
+
+        const ratingCountMap = /*[[${reviewCounts}]]*/ {};
+        console.log("review counts");
+        console.log(ratingCountMap);
+
+
+        if (Object.keys(ratingCountMap).length === 0) {
+            console.warn("No review counts available, chart will not be displayed.");
+        } else {
+            const orderedRatings = [1, 2, 3, 4, 5];
+            const orderedData = {};
+
+            orderedRatings.forEach(rating => {
+                if (ratingCountMap.hasOwnProperty(rating)) {
+                    orderedData[rating] = ratingCountMap[rating];
+                } else {
+                    orderedData[rating] = 0;
+                }
+            });
+
+            const data = {
+                labels: Object.keys(orderedData).map(key => `${key}점`),
+                datasets: [{
+                    label: 'Review Ratings',
+                    data: Object.values(orderedData),
+                    backgroundColor: [
+                        Utils.CHART_COLORS.red,    // 1점
+                        Utils.CHART_COLORS.orange, // 2점
+                        Utils.CHART_COLORS.yellow, // 3점
+                        Utils.CHART_COLORS.lightGreen,   // 4점
+                        Utils.CHART_COLORS.deepGreen   // 5점
+                    ]
+                }]
+            };
+
+
+            const config = {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                            text: '1대1 문의 상태'
+                        }
+                    }
+                },
+            };
+
+            // DOM 로드 후 차트 초기화
+            document.addEventListener('DOMContentLoaded', function() {
+                const ctx = document.getElementById('reviewDoughnutChart');
+                if (ctx) {
+                    try {
+                        new Chart(ctx.getContext('2d'), config);
+                    } catch (error) {
+                        console.error('Error initializing chart:', error);
+                    }
+                }
+            });
+        }
+    
+        
+    </script>
+</div>
+</body>
+</html>

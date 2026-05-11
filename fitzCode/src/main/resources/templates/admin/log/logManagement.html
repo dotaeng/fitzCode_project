@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <link rel="stylesheet" th:href="@{/css/admin/managerSidebar.css}"/>
+  <link rel="stylesheet" th:href="@{/css/admin/logManagement.css}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    .content-wrapper {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    .adminSidebarWrap {
+      width: 250px;
+      background-color: #f8f9fa;
+      position: fixed;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
+      width: calc(100% - 250px);
+    }
+
+    .log-container-wrapper {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 0;
+      margin-top: 30px;
+      margin-left: 40px;
+    }
+
+    .log-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+      position: relative;
+      display: inline-block;
+    }
+
+    .log-title:after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: #333;
+    }
+
+    .log-section {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .log-section h2 {
+      cursor: pointer;
+      padding: 10px;
+      font-size: 1.5em;
+      color: #333;
+      display: flex;
+      align-items: center;
+    }
+
+    .log-section h2 .fa {
+      margin-left: 8px;
+      transition: transform 0.3s ease;
+    }
+
+    .log-section h2.active .fa {
+      transform: rotate(180deg);
+    }
+
+    .log-content {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .log-container {
+      padding: 20px;
+      border: 1px solid #ccc;
+      max-height: 500px;
+      overflow-y: auto;
+      font-family: 'Apple SD Gothic Neo', sans-serif;
+      line-height: 1.5;
+    }
+
+    .log-entry {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      color: #333;
+    }
+
+    .error-log .log-entry {
+      background-color: transparent;
+      color: #d9534f;
+    }
+
+    .visitor-log .log-entry {
+      background-color: transparent;
+      color: #31708f;
+    }
+
+    .filter-section {
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+    }
+
+    .filter-section label {
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    .filter-section input, .filter-section select {
+      padding: 5px;
+      margin-right: 10px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+
+    .filter-section button {
+      padding: 5px 10px;
+      margin-right: 5px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .filter-section button:hover {
+      background-color: #333;
+    }
+
+    .filter-section .reset-button {
+      background-color: #6c757d;
+    }
+
+    .filter-section .reset-button:hover {
+      background-color: #5a6268;
+    }
+  </style>
+</head>
+<body>
+<div class="content-wrapper">
+  <!-- 사이드바 -->
+  <div class="adminSidebarWrap">
+    <div class="sidebar" th:replace="~{fragments/managerSidebar :: sidebar}"></div>
+  </div>
+
+  <!-- 로그 관리 -->
+  <div class="main-content">
+    <div class="log-container-wrapper">
+      <h3 class="log-title">로그 관리</h3>
+      <div class="log-wrapper">
+        <!-- 에러 로그 -->
+        <div class="log-section error-log">
+          <h2 onclick="toggleLogSection('error')">
+            에러 로그
+            <i class="fa fa-chevron-down"></i>
+          </h2>
+          <div class="log-content" id="errorLogContentWrapper">
+            <div class="filter-section">
+              <label for="errorStartDate">시작 시간:</label>
+              <input type="datetime-local" id="errorStartDate" name="errorStartDate">
+              <label for="errorEndDate">종료 시간:</label>
+              <input type="datetime-local" id="errorEndDate" name="errorEndDate">
+              <label for="errorLevel">최소 레벨:</label>
+              <select id="errorLevel" name="errorLevel">
+                <option value="1">WARN</option>
+                <option value="2">ERROR</option>
+                <option value="3">CRITICAL</option>
+              </select>
+              <button onclick="loadErrorLogs()">검색</button>
+              <button class="reset-button" onclick="resetErrorFilter()">초기화</button>
+            </div>
+            <div class="log-container">
+              <div id="errorLogContent"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 방문자 로그 -->
+        <div class="log-section visitor-log">
+          <h2 onclick="toggleLogSection('visitor')">
+            방문자 로그
+            <i class="fa fa-chevron-down"></i>
+          </h2>
+          <div class="log-content" id="visitorLogContentWrapper">
+            <div class="filter-section">
+              <label for="visitorStartDate">시작 시간:</label>
+              <input type="datetime-local" id="visitorStartDate" name="visitorStartDate">
+              <label for="visitorEndDate">종료 시간:</label>
+              <input type="datetime-local" id="visitorEndDate" name="visitorEndDate">
+              <button onclick="loadVisitorLogs()">검색</button>
+              <button class="reset-button" onclick="resetVisitorFilter()">초기화</button>
+            </div>
+            <div class="log-container">
+              <div id="visitorLogContent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    // 초기 시간 설정 (최근 24시간)
+    setDefaultTimeRange();
+
+    // 초기 로드
+    loadErrorLogs();
+    loadVisitorLogs();
+  });
+
+  function setDefaultTimeRange() {
+    let now = new Date();
+    let endDate = now.toISOString().slice(0, 16); // 현재 시간 (yyyy-MM-ddThh:mm)
+    now.setHours(now.getHours() - 24); // 24시간 전
+    let startDate = now.toISOString().slice(0, 16);
+
+    $('#errorStartDate').val(startDate);
+    $('#errorEndDate').val(endDate);
+    $('#visitorStartDate').val(startDate);
+    $('#visitorEndDate').val(endDate);
+  }
+
+  function resetErrorFilter() {
+    setDefaultTimeRange();
+    $('#errorLevel').val('1'); // 기본 레벨: WARN
+    loadErrorLogs();
+  }
+
+  function resetVisitorFilter() {
+    setDefaultTimeRange();
+    loadVisitorLogs();
+  }
+
+  function toggleLogSection(type) {
+    const contentWrapper = $(`#${type}LogContentWrapper`);
+    const header = contentWrapper.prev('h2');
+    const isVisible = contentWrapper.is(':visible');
+
+    if (isVisible) {
+      contentWrapper.slideUp();
+      header.removeClass('active');
+    } else {
+      contentWrapper.slideDown();
+      header.addClass('active');
+      // 표시될 때 로그 갱신
+      if (type === 'error') {
+        loadErrorLogs();
+      } else if (type === 'visitor') {
+        loadVisitorLogs();
+      }
+    }
+  }
+
+  function loadErrorLogs() {
+    let startDate = $('#errorStartDate').val();
+    let endDate = $('#errorEndDate').val();
+    let minLevel = $('#errorLevel').val();
+
+    $.ajax({
+      url: '/admin/logs/error',
+      method: 'GET',
+      data: {
+        startDate: startDate || '',
+        endDate: endDate || '',
+        minLevel: minLevel
+      },
+      success: function(data) {
+        let logs = data.split('\n').map(line => `<div class="log-entry">${line}</div>`).join('');
+        $('#errorLogContent').html(logs);
+      },
+      error: function() {
+        $('#errorLogContent').html('<div class="log-entry">에러 로그를 불러올 수 없습니다</div>');
+      }
+    });
+  }
+
+  function loadVisitorLogs() {
+    let startDate = $('#visitorStartDate').val();
+    let endDate = $('#visitorEndDate').val();
+
+    $.ajax({
+      url: '/admin/logs/visitor',
+      method: 'GET',
+      data: {
+        startDate: startDate || '',
+        endDate: endDate || ''
+      },
+      success: function(data) {
+        let logs = data.split('\n').map(line => `<div class="log-entry">${line}</div>`).join('');
+        $('#visitorLogContent').html(logs);
+      },
+      error: function() {
+        $('#visitorLogContent').html('<div class="log-entry">방문자 로그를 불러올 수 없습니다</div>');
+      }
+    });
+  }
+</script>
+</body>
+</html>

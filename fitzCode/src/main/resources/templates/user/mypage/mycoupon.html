@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <link rel="stylesheet" th:href="@{/css/user/mycoupon.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+<!-- header -->
+<div th:replace="~{fragments/header}"></div>
+
+<br><br><br><br>
+<div class="mypageContainer">
+    <!-- navi -->
+    <div th:replace="~{fragments/mypageNavi}"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="mypageContent">
+        <h2>내 쿠폰</h2>
+        <div id="hr"></div>
+        <div class="mycouponInfo">
+            <th:block th:if="${list != null && list.size() > 0}">
+                <th:block th:each="dto : ${list}">
+                    <div class="couponList">
+                        <div id="couponData">
+                            <table style="padding: 10px">
+                                <tr>
+                                    <td colspan="2" th:text="${dto.couponCode}"
+                                        style="font-weight: bold; font-size: 15px;"/>
+                                </tr>
+                                <tr>
+                                    <td colspan="2 " th:text="${dto.description}"/>
+                                </tr>
+                                <!--                                    <tr>-->
+                                <!--                                        <td colspan="2" th:if="${dto.discountAmount != 0}" th:text="${dto.discountAmount} + '원'"/>-->
+                                <!--                                        <td colspan="2" th:if="${dto.discountPercentage != 0}" th:text="${dto.discountPercentage} + '%'"/>-->
+                                <!--                                    </tr>-->
+                                <tr th:if="${dto.minimumOrderAmount != 0}">
+                                    <td>
+                                        <p>최소주문 금액</p>
+                                        <div th:if="${dto.formattedMinimumOrderAmount != null}" th:text="${dto.formattedMinimumOrderAmount}"></div>
+                                        <div th:unless="${dto.formattedMinimumOrderAmount != null}">제한 없음</div>
+                                    </td>
+                                </tr>
+                                <tr th:unless="${dto.minimumOrderAmount != 0}">
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p>사용가능기한</p>
+                                        <div th:text="${dto.formattedValidUntil}"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </th:block>
+            </th:block>
+
+        </div>
+        <!--        <a th:href="@{/mypage/myInfo}"> >>> 전체 쿠폰 확인 </a>-->
+
+    </div>
+</div>
+<br>
+<br>
+<br>
+<br>
+<br>
+<!-- footer -->
+<div th:replace="~{fragments/footer}"></div>
+</body>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</html>

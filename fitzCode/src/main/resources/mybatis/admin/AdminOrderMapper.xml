@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.fitzcode.admin.mapper.AdminOrderMapper">
+
+    <!-- AdminOrderItemDTO -->
+    <resultMap id="OrderItemResultMap" type="kr.co.fitzcode.common.dto.AdminOrderItemDTO">
+        <id property="orderDetailId" column="order_detail_id"/>
+        <result property="productName" column="product_name"/>
+        <result property="description" column="description"/>
+        <result property="quantity" column="quantity"/>
+        <result property="unitPrice" column="price"/>
+        <result property="subtotal" column="subtotal"/>
+        <result property="imageUrl" column="image_url"/>
+    </resultMap>
+
+    <!-- AdminOrderDetailDTO -->
+    <resultMap id="OrderDetailResultMap" type="kr.co.fitzcode.common.dto.AdminOrderDetailDTO">
+        <id property="orderId" column="order_id"/>
+        <result property="orderStatus" column="order_status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="user_name"/>
+        <result property="email" column="email"/>
+        <result property="deliveryStatus" column="delivery_status"/>
+        <result property="trackingNumber" column="tracking_number"/>
+        <result property="address" column="address_line1"/>
+        <result property="shippedAt" column="shipped_at"/>
+        <result property="deliveredAt" column="delivered_at"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="bankName" column="bank_name"/>
+        <result property="accountNumber" column="account_number"/>
+        <result property="accountHolder" column="account_holder"/>
+        <collection property="items" resultMap="OrderItemResultMap"/>
+    </resultMap>
+
+    <!-- DeliveryDTO -->
+    <resultMap id="DeliveryResultMap" type="kr.co.fitzcode.common.dto.DeliveryDTO">
+        <id property="deliveryId" column="delivery_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="trackingNumber" column="tracking_number"/>
+        <result property="courierCode" column="courier_code"/>
+        <result property="deliveryStatus" column="delivery_status" typeHandler="kr.co.fitzcode.admin.handler.DeliveryTypeHandler"/>
+        <result property="shippedAt" column="shipped_at"/>
+        <result property="deliveredAt" column="delivered_at"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 주문 상세 조회 -->
+    <select id="getOrderDetail" parameterType="long" resultMap="OrderDetailResultMap">
+        SELECT
+        o.order_id,
+        o.order_status,
+        o.created_at,
+        (SELECT SUM(od2.quantity * od2.price) FROM ORDER_DETAIL od2 WHERE od2.order_id = o.order_id) AS total_amount,
+        o.user_id,
+        u.user_name,
+        u.email,
+        od.order_detail_id,
+        p.product_name,
+        p.description,
+        od.quantity,
+        od.price,
+        od.quantity * od.price AS subtotal,
+        p.image_url,
+        d.delivery_status,
+        d.tracking_number,
+        a.address_line1,
+        d.shipped_at,
+        d.delivered_at,
+        pmt.payment_method,
+        ua.bank_name,
+        ua.account_number,
+        ua.account_holder
+        FROM ORDERS o
+        LEFT JOIN USER u ON o.user_id = u.user_id
+        LEFT JOIN ORDER_DETAIL od ON o.order_id = od.order_id
+        LEFT JOIN PRODUCT p ON od.product_id = p.product_id
+        LEFT JOIN DELIVERY d ON o.order_id = d.order_id
+        LEFT JOIN ADDRESS a ON o.address_id = a.address_id
+        LEFT JOIN PAYMENT pmt ON o.order_id = pmt.order_id
+        LEFT JOIN USER_ACCOUNT ua ON pmt.payment_method = 2 AND ua.account_id = (
+        SELECT account_id FROM USER_ACCOUNT WHERE user_id = o.user_id AND is_default = TRUE LIMIT 1
+        )
+        WHERE o.order_id = #{orderId}
+    </select>
+
+    <!-- 주문 리스트 조회 -->
+    <select id="getOrderList" resultType="kr.co.fitzcode.common.dto.AdminOrderDTO">
+        SELECT
+        o.order_id,
+        o.order_status,
+        o.created_at,
+        CONCAT(
+        (SELECT p.product_name
+        FROM ORDER_DETAIL od
+        JOIN PRODUCT p ON od.product_id = p.product_id
+        WHERE od.order_id = o.order_id
+        LIMIT 1),
+        CASE
+        WHEN (SELECT COUNT(*) FROM ORDER_DETAIL od2 WHERE od2.order_id = o.order_id) > 1
+        THEN CONCAT(' 외 ', (SELECT COUNT(*) - 1 FROM ORDER_DETAIL od2 WHERE od2.order_id = o.order_id), '개')
+        ELSE ''
+        END
+        ) AS productName
+        FROM ORDERS o
+        INNER JOIN ORDER_DETAIL od ON o.order_id = od.order_id
+        <where>
+            <if test="status != null">
+                AND o.order_status = #{status}
+            </if>
+        </where>
+        GROUP BY o.order_id, o.order_status, o.created_at
+        <choose>
+            <when test="sortBy == 'status'">
+                ORDER BY o.order_status DESC
+            </when>
+            <otherwise>
+                ORDER BY o.created_at DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 총 주문 수 조회 -->
+    <select id="getTotalOrderCount" parameterType="java.lang.Integer" resultType="int">
+        SELECT COUNT(DISTINCT o.order_id)
+        FROM ORDERS o
+        LEFT JOIN ORDER_DETAIL od ON o.order_id = od.order_id
+        <where>
+            <if test="status != null">
+                AND o.order_status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 주문 상태 업데이트 -->
+    <update id="updateOrderStatus" parameterType="map">
+        UPDATE ORDERS
+        SET order_status = #{status}
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- 특정 주문 ID에 해당하는 배송 정보 조회 -->
+    <select id="getDeliveryByOrderId" parameterType="long" resultMap="DeliveryResultMap">
+        SELECT
+        delivery_id,
+        order_id,
+        tracking_number,
+        courier_code,
+        delivery_status,
+        shipped_at,
+        delivered_at,
+        created_at
+        FROM DELIVERY
+        WHERE order_id = #{orderId}
+    </select>
+
+    <!-- 새로운 배송 정보 삽입 -->
+    <insert id="insertDelivery" parameterType="kr.co.fitzcode.common.dto.DeliveryDTO">
+        INSERT INTO DELIVERY (
+        order_id,
+        tracking_number,
+        courier_code,
+        delivery_status,
+        shipped_at,
+        created_at
+        )
+        VALUES (
+        #{orderId},
+        #{trackingNumber},
+        #{courierCode},
+        #{deliveryStatus.code},
+        #{shippedAt},
+        #{createdAt}
+        )
+    </insert>
+
+    <!-- 기존 배송 정보 업데이트 -->
+    <update id="updateDelivery" parameterType="kr.co.fitzcode.common.dto.DeliveryDTO">
+        UPDATE DELIVERY
+        SET
+        tracking_number = #{trackingNumber},
+        courier_code = #{courierCode},
+        delivery_status = #{deliveryStatus.code},
+        shipped_at = #{shippedAt},
+        delivered_at = #{deliveredAt}
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- 배송중 상태의 모든 배송 정보 조회 -->
+    <select id="getAllDeliveriesInShipping" resultMap="DeliveryResultMap">
+        SELECT
+        delivery_id,
+        order_id,
+        tracking_number,
+        courier_code,
+        delivery_status,
+        shipped_at,
+        delivered_at,
+        created_at
+        FROM DELIVERY
+        WHERE delivery_status = 2
+    </select>
+</mapper>

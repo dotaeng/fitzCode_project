@@ -1,0 +1,254 @@
+.content-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding-left: 20px;
+    max-width: 1200px;
+}
+
+.coupon-container {
+    padding: 20px;
+    font-family: 'Apple SD Gothic Neo', sans-serif;
+    margin-left: 20px;
+}
+
+.coupon-title {
+    font-size: 24px;
+    display: inline-block;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.coupon-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 100%;
+    height: 2px;
+    background-color: #000;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: fixed;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+th {
+    background-color: #2f2f32;
+    text-align: center;
+    color: white;
+}
+
+td {
+    text-align: left;
+}
+
+td:nth-child(1), td:nth-child(4), td:nth-child(5), td:nth-child(6), td:nth-child(7), td:nth-child(8), td:nth-child(9), td:nth-child(10), td:nth-child(11) {
+    text-align: center;
+}
+
+th.coupon-id, td.coupon-id {
+    width: 28px;
+}
+
+th.coupon-code, td.coupon-code {
+    width: 219px;
+}
+
+th.description, td.description {
+    width: 156px;
+}
+
+th.coupon-type, td.coupon-type {
+    width: 72px;
+}
+
+th.discount-amount, td.discount-amount {
+    width: 60px;
+}
+
+th.discount-percentage, td.discount-percentage {
+    width: 60px;
+}
+
+th.minimum-order-amount, td.minimum-order-amount {
+    width: 92px;
+}
+
+th.expiry-date, td.expiry-date {
+    width: 99px;
+}
+
+th.is-active, td.is-active {
+    width: 70px;
+}
+
+th.category, td.category {
+    width: 56px;
+}
+
+th.actions, td.actions {
+    width: 40px;
+}
+
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.pagination a {
+    margin: 0 5px;
+    text-decoration: none;
+    color: #333;
+}
+
+.form-container {
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.form-row input,
+.form-row select {
+    width: 150px;
+    padding: 5px;
+    box-sizing: border-box;
+    height: 34px;
+}
+
+.form-row button[type="submit"],
+.form-row button[type="button"] {
+    width: auto;
+    height: 34px;
+    padding: 0 16px;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.category-dropdown {
+    width: 150px;
+    height: 34px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="black" d="M7 10l5 5 5-5z"/></svg>'); /* 커스텀 화살표 */
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+}
+
+button.update-btn {
+    background-color: #000;
+    color: #fff;
+}
+
+button.delete-btn {
+    background-color: #808080;
+    color: #fff;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 0 auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    border: 1px solid #888;
+    width: 400px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-form label {
+    margin-top: 10px;
+}
+
+.modal-form input,
+.modal-form select {
+    width: 100%;
+    padding: 5px;
+    margin-top: 5px;
+    box-sizing: border-box;
+    height: 34px;
+}
+
+.modal-form .category-dropdown {
+    width: 100%;
+    height: 34px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="black" d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+}
+
+.modal-form .button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.modal-form button {
+    background-color: #000;
+    color: #fff;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+}

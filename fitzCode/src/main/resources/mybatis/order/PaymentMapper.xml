@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.fitzcode.order.mapper.PaymentMapper">
+    <insert id="createPayment">
+        insert into PAYMENT (order_id, payment_status, payment_date, amount, transaction_id)
+        values (#{paymentDTO.orderId}, #{paymentDTO.paymentStatus}, NOW(), #{paymentDTO.amount}, #{paymentDTO.transactionId})
+    </insert>
+</mapper>

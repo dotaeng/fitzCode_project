@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  쿠폰 관리</title>
+  <link rel="stylesheet" th:href="@{/css/admin/managerSidebar.css}"/>
+  <link rel="stylesheet" th:href="@{/css/admin/couponManagement.css}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div class="content-wrapper">
+  <!-- 사이드바 -->
+  <div class="adminSidebarWrap">
+    <div class="sidebar" th:replace="~{fragments/managerSidebar :: sidebar}"></div>
+  </div>
+
+  <!-- 쿠폰 관리 -->
+  <div class="main-content">
+    <div class="coupon-container">
+      <h3 class="coupon-title">쿠폰 관리</h3>
+
+      <!-- 쿠폰 추가/발급 폼 -->
+      <div class="form-container">
+        <h4>쿠폰 추가</h4>
+        <form id="addCouponForm">
+          <div class="form-row">
+            <input type="text" name="couponCode" placeholder="쿠폰 코드" required>
+            <input type="text" name="description" placeholder="설명">
+            <select name="couponType" required>
+              <option value="1">금액할인</option>
+              <option value="2">비율할인</option>
+              <option value="3">무료배송</option>
+              <option value="4">첫주문할인</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <input type="number" name="discountAmount" placeholder="할인 금액">
+            <input type="number" name="discountPercentage" placeholder="할인 비율">
+            <input type="number" name="minimumOrderAmount" placeholder="최소 주문 금액">
+            <input type="date" name="expiryDate" required>
+            <select name="applicableCategories" class="category-dropdown">
+              <option value="">카테고리 선택</option>
+              <option value="1">신발</option>
+              <option value="2">상의</option>
+              <option value="3">하의</option>
+            </select>
+            <button type="submit">추가</button>
+          </div>
+        </form>
+
+        <h4>쿠폰 발급</h4>
+        <form id="issueCouponForm">
+          <div class="form-row">
+            <input type="number" name="couponId" placeholder="쿠폰 ID" required>
+            <input type="number" name="userId" placeholder="사용자 ID (개별 발급 시)">
+            <input type="date" name="validUntil" required>
+            <button type="button" id="issueToUserBtn">개별 발급</button>
+            <button type="button" id="issueToAllBtn">전체 발급</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 쿠폰 목록 -->
+      <table>
+        <thead>
+        <tr>
+          <th class="coupon-id">-</th>
+          <th class="coupon-code">쿠폰 코드</th>
+          <th class="description">설명</th>
+          <th class="coupon-type">유형</th>
+          <th class="discount-amount">할인 금액</th>
+          <th class="discount-percentage">할인 비율</th>
+          <th class="minimum-order-amount">최소 주문 금액</th>
+          <th class="expiry-date">만료 날짜</th>
+          <th class="is-active">활성화</th>
+          <th class="category">카테고리</th>
+          <th class="actions">작업</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="coupon : ${coupons}">
+          <td class="coupon-id" th:text="${coupon.couponId}"></td>
+          <td class="coupon-code" th:text="${coupon.couponCode}"></td>
+          <td class="description" th:text="${coupon.description}"></td>
+          <td class="coupon-type">
+            <span th:switch="${coupon.couponType}">
+              <span th:case="1">금액할인</span>
+              <span th:case="2">비율할인</span>
+              <span th:case="3">무료배송</span>
+              <span th:case="4">첫주문할인</span>
+              <span th:case="*">알 수 없음</span>
+            </span>
+          </td>
+          <td class="discount-amount" th:text="${coupon.discountAmount}"></td>
+          <td class="discount-percentage" th:text="${coupon.discountPercentage}"></td>
+          <td class="minimum-order-amount" th:text="${coupon.minimumOrderAmount != null ? coupon.minimumOrderAmount : ''}"></td>
+          <td class="expiry-date" th:text="${coupon.formattedExpiryDate}"></td>
+          <td class="is-active" th:text="${coupon.isActive} ? 'Y' : 'N'"></td>
+          <td class="category">
+            <span th:if="${coupon.applicableCategories}">
+              <span th:text="${#strings.replace(coupon.applicableCategories, '[', '').replace(']', '').replace('1', '신발').replace('2', '상의').replace('3', '하의')}"></span>
+            </span>
+            <span th:unless="${coupon.applicableCategories}">전체</span>
+          </td>
+          <td class="actions">
+            <button class="update-btn" th:data-coupon-id="${coupon.couponId}">수정</button>
+            <button class="delete-btn" th:attr="data-coupon-id=${coupon.couponId}" onclick="deleteCoupon(this.getAttribute('data-coupon-id'))">삭제</button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+      <!-- 페이지네이션 -->
+      <div class="pagination">
+        <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+           th:href="@{/admin/coupon(page=${i})}"
+           th:text="${i}"></a>
+      </div>
+
+      <!-- 쿠폰 수정 모달 -->
+      <div id="updateCouponModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeUpdateModal()">×</span>
+          <h3>쿠폰 수정</h3>
+          <form id="updateCouponForm" class="modal-form">
+            <input type="hidden" name="couponId" id="updateCouponId">
+            <label>쿠폰 코드</label>
+            <input type="text" name="couponCode" id="updateCouponCode" required>
+            <label>설명</label>
+            <input type="text" name="description" id="updateDescription">
+            <label>쿠폰 유형</label>
+            <select name="couponType" id="updateCouponType" required>
+              <option value="1">금액할인</option>
+              <option value="2">비율할인</option>
+              <option value="3">무료배송</option>
+              <option value="4">첫주문할인</option>
+            </select>
+            <label>할인 금액</label>
+            <input type="number" name="discountAmount" id="updateDiscountAmount">
+            <label>할인 비율</label>
+            <input type="number" name="discountPercentage" id="updateDiscountPercentage">
+            <label>최소 주문 금액</label>
+            <input type="number" name="minimumOrderAmount" id="updateMinimumOrderAmount">
+            <label>만료 날짜</label>
+            <input type="date" name="expiryDate" id="updateExpiryDate" required>
+            <label>카테고리</label>
+            <select name="applicableCategories" id="updateApplicableCategories" class="category-dropdown">
+              <option value="">카테고리 선택</option>
+              <option value="1">신발</option>
+              <option value="2">상의</option>
+              <option value="3">하의</option>
+            </select>
+            <label>활성화</label>
+            <select name="isActive" id="updateIsActive" required>
+              <option value="true">예</option>
+              <option value="false">아니오</option>
+            </select>
+            <div class="button-container">
+              <button type="submit">저장</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 쿠폰 삭제 함수 (전역 스코프)
+  function deleteCoupon(couponId) {
+    if (confirm('쿠폰을 삭제하시겠습니까?')) {
+      $.ajax({
+        url: '/admin/coupon/delete',
+        method: 'POST',
+        data: { couponId: couponId },
+        success: function(response) {
+          if (response.success) {
+            alert(response.message);
+            location.reload();
+          } else {
+            alert(response.message);
+          }
+        },
+        error: function(xhr) {
+          console.error('쿠폰 삭제 오류:', xhr.responseText);
+          alert('쿠폰 삭제 중 오류 발생: ' + (xhr.responseText || '알 수 없는 오류'));
+        }
+      });
+    }
+  }
+
+  function closeUpdateModal() {
+    $('#updateCouponModal').hide();
+  }
+
+  $(document).ready(function() {
+    // 숫자 포맷팅
+    function formatNumber(number) {
+      return number != null ? number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원" : "";
+    }
+
+    // 수정 버튼
+    $('.update-btn').on('click', function() {
+      const couponId = $(this).data('coupon-id');
+      openUpdateModal(couponId);
+    });
+
+    // 쿠폰 수정 모달
+    function openUpdateModal(couponId) {
+      $.ajax({
+        url: '/admin/coupon/get/' + couponId,
+        method: 'GET',
+        success: function(response) {
+          console.log('Ajax 성공 응답:', response);
+          if (response.success) {
+            const coupon = response.coupon;
+            $('#updateCouponId').val(coupon.couponId);
+            $('#updateCouponCode').val(coupon.couponCode);
+            $('#updateDescription').val(coupon.description);
+            $('#updateCouponType').val(coupon.couponType);
+            $('#updateDiscountAmount').val(coupon.discountAmount);
+            $('#updateDiscountPercentage').val(coupon.discountPercentage);
+            $('#updateMinimumOrderAmount').val(coupon.minimumOrderAmount);
+            $('#updateExpiryDate').val(coupon.expiryDate ? coupon.expiryDate.split(' ')[0] : '');
+            $('#updateIsActive').val(coupon.isActive.toString());
+            if (coupon.applicableCategories) {
+              const categories = JSON.parse(coupon.applicableCategories);
+              $('#updateApplicableCategories').val(categories.length > 0 ? categories[0] : '');
+            } else {
+              $('#updateApplicableCategories').val('');
+            }
+            $('#updateCouponModal').show();
+          } else {
+            alert(response.message);
+          }
+        },
+        error: function(xhr) {
+          console.error('Ajax 오류:', xhr.responseText);
+          alert('쿠폰 정보를 불러오는 중 오류 발생');
+        }
+      });
+    }
+
+    // 쿠폰 수정 저장
+    $('#updateCouponForm').submit(function(e) {
+      e.preventDefault();
+      const selectedCategory = $('#updateApplicableCategories').val();
+      const formData = {
+        couponId: parseInt($('#updateCouponId').val()),
+        couponCode: $('#updateCouponCode').val(),
+        description: $('#updateDescription').val(),
+        couponType: parseInt($('#updateCouponType').val()),
+        discountAmount: parseInt($('#updateDiscountAmount').val()) || null,
+        discountPercentage: parseInt($('#updateDiscountPercentage').val()) || null,
+        minimumOrderAmount: parseInt($('#updateMinimumOrderAmount').val()) || null,
+        expiryDate: $('#updateExpiryDate').val(),
+        isActive: $('#updateIsActive').val() === 'true',
+        applicableCategories: selectedCategory ? JSON.stringify([selectedCategory]) : '[]'
+      };
+
+      $.ajax({
+        url: '/admin/coupon/update',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(response) {
+          if (response.success) {
+            alert(response.message);
+            closeUpdateModal();
+            location.reload();
+          } else {
+            alert(response.message);
+          }
+        },
+        error: function(xhr) {
+          alert('쿠폰 수정 중 오류 발생');
+        }
+      });
+    });
+
+    // 쿠폰 추가
+    $('#addCouponForm').submit(function(e) {
+      e.preventDefault();
+      const selectedCategory = $('select[name="applicableCategories"]').val();
+      const formData = {
+        couponCode: $('input[name="couponCode"]').val(),
+        description: $('input[name="description"]').val(),
+        couponType: parseInt($('select[name="couponType"]').val()),
+        discountAmount: parseInt($('input[name="discountAmount"]').val()) || null,
+        discountPercentage: parseInt($('input[name="discountPercentage"]').val()) || null,
+        minimumOrderAmount: parseInt($('input[name="minimumOrderAmount"]').val()) || null,
+        expiryDate: $('input[name="expiryDate"]').val(),
+        applicableCategories: selectedCategory ? JSON.stringify([selectedCategory]) : '[]'
+      };
+
+      $.ajax({
+        url: '/admin/coupon/add',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(response) {
+          if (response.success) {
+            alert(response.message);
+            location.reload();
+          } else {
+            alert(response.message);
+          }
+        },
+        error: function(xhr) {
+          alert('쿠폰 추가 중 오류 발생');
+        }
+      });
+    });
+
+    // 특정 사용자에게 쿠폰 발급
+    function issueToUser() {
+      const couponId = $('input[name="couponId"]').val();
+      const userId = $('input[name="userId"]').val();
+      const validUntil = $('input[name="validUntil"]').val();
+
+      if (!couponId || !userId || !validUntil) {
+        alert('모든 필드를 입력해주세요');
+        return;
+      }
+
+      $.ajax({
+        url: '/admin/coupon/issue/user',
+        method: 'POST',
+        data: { couponId: couponId, userId: userId, validUntil: validUntil },
+        success: function(response) {
+          if (response.success) {
+            alert(response.message);
+          } else {
+            alert(response.message);
+          }
+        },
+        error: function(xhr) {
+          alert('쿠폰 발급 중 오류 발생');
+        }
+      });
+    }
+
+    // 전체 사용자에게 쿠폰 발급
+    function issueToAll() {
+      const couponId = $('input[name="couponId"]').val();
+      const validUntil = $('input[name="validUntil"]').val();
+
+      if (!couponId || !validUntil) {
+        alert('쿠폰 ID와 유효기간을 입력해주세요.');
+        return;
+      }
+
+      if (confirm('전체 사용자에게 쿠폰을 발급하시겠습니까?')) {
+        $.ajax({
+          url: '/admin/coupon/issue/all',
+          method: 'POST',
+          data: { couponId: couponId, validUntil: validUntil },
+          success: function(response) {
+            if (response.success) {
+              alert(response.message);
+            } else {
+              alert(response.message);
+            }
+          },
+          error: function(xhr) {
+            alert('쿠폰 발급 중 오류 발생');
+          }
+        });
+      }
+    }
+
+    // 개별 발급 버튼 클릭 이벤트
+    $('#issueToUserBtn').on('click', function() {
+      issueToUser();
+    });
+
+    // 전체 발급 버튼 클릭 이벤트
+    $('#issueToAllBtn').on('click', function() {
+      issueToAll();
+    });
+  });
+</script>
+</body>
+</html>

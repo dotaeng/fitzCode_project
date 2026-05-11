@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <link rel="stylesheet" th:href="@{/css/notice/faq.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/header}"></div>
+<div class="notice-sidebar">
+    <h4>고객센터</h4>
+    <ul>
+        <li><a th:href="@{/notice}" th:classappend="${menuCurrentPage == 'notice'} ? 'active'">공지사항</a></li>
+        <li><a th:href="@{/notice/faq}" th:classappend="${menuCurrentPage == 'faq'} ? 'active'">FAQ</a></li>
+    </ul>
+</div>
+<div class="notice-main-wrapper">
+    <div class="notice-main-content">
+        <div class="notice-header">
+            <h3>FAQ</h3>
+        </div>
+        <div class="faq-list" th:each="faq, iterStat : ${faqs}">
+            <div class="faq-item" th:data-id="'faq-' + ${iterStat.count}">
+                <h4 class="faq-title" th:text="${faq.title}"></h4>
+                <div class="faq-content" th:utext="${faq.content}"></div>
+            </div>
+            <div th:if="${faqs.isEmpty()}">
+                <p>FAQ가 없습니다.</p>
+            </div>
+        </div>
+        <div class="pagination" th:if="${totalPages > 1}">
+            <a th:href="@{/notice/faq(page=${currentPage - 1})}" th:class="${currentPage == 1} ? 'disabled'" th:text="'<'"></a>
+            <a th:each="page : ${pageNumbers}"
+               th:href="@{/notice/faq(page=${page})}"
+               th:text="${page}"
+               th:class="${page == currentPage} ? 'active'"></a>
+            <a th:href="@{/notice/faq(page=${currentPage + 1})}" th:class="${currentPage == totalPages} ? 'disabled'" th:text="'>'"></a>
+        </div>
+    </div>
+</div>
+<div class="footer-section">
+    <div th:replace="~{fragments/footer}"></div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const faqItems = document.querySelectorAll('.faq-item');
+
+        faqItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const contentDiv = this.querySelector('.faq-content');
+
+                if (contentDiv.classList.contains('active')) {
+                    contentDiv.classList.remove('active');
+                    return;
+                }
+                document.querySelectorAll('.faq-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+
+                contentDiv.classList.add('active');
+            });
+        });
+    });
+</script>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</body>
+</html>

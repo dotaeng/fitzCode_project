@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <link rel="stylesheet" th:href="@{/css/fragments/header.css}"/>
+  <link rel="stylesheet" th:href="@{/css/fragments/footer.css}"/>
+  <link rel="stylesheet" th:href="@{/css/product/productList.css}"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <style>
+    .search-result-container {
+      max-width: 1200px;
+      margin: 154px auto 40px auto;
+      padding: 0 20px;
+      text-align: center;
+      font-family: 'Apple SD Gothic Neo', sans-serif;
+    }
+    .keyword {
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+<!-- 헤더 -->
+<div th:replace="~{fragments/header}"></div>
+
+<!-- 검색 결과 -->
+<div class="search-result-container">
+  <h3>검색 결과</h3>
+  <p>검색어: <span class="keyword" th:text="${param.keyword}"></span></p>
+  <div class="product-grid" id="product-grid"></div>
+</div>
+
+<!-- Scroll to Top 버튼 -->
+<button id="scrollToTopBtn" class="scroll-to-top">
+  <i class="fa fa-arrow-up"></i>
+</button>
+
+<!-- 푸터 -->
+<div th:replace="~{fragments/footer}"></div>
+
+<script>
+  let currentPage = 1;
+  let isLoading = false;
+  let hasMoreProducts = true;
+  const keyword = new URLSearchParams(window.location.search).get('keyword');
+
+  $(document).ready(function () {
+    // 초기 상품 로드
+    if (keyword) {
+      loadSearchResults();
+    } else {
+      $("#product-grid").html('<p>검색어가 없습니다.</p>');
+    }
+
+    // Up 버튼
+    $('#scrollToTopBtn').click(function() {
+      $('html, body').animate({ scrollTop: 0 }, 500);
+      return false;
+    });
+
+    // 스크롤 위치에 따라 버튼 표시/숨김
+    $(window).on('scroll', function () {
+      if ($(window).scrollTop() > 200) {
+        $('#scrollToTopBtn').addClass('visible');
+      } else {
+        $('#scrollToTopBtn').removeClass('visible');
+      }
+    });
+
+    // 무한 스크롤
+    $(window).on("scroll", function () {
+      if (!isLoading && hasMoreProducts && keyword) {
+        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
+          console.log("Triggering infinite scroll...");
+          isLoading = true;
+          setTimeout(function() {
+            loadSearchResults();
+          }, 500);
+        }
+      }
+    });
+  });
+
+  function loadSearchResults() {
+    $.ajax({
+      url: "/api/product/search",
+      method: "GET",
+      data: { keyword: keyword, page: currentPage },
+      dataType: "json",
+      success: function(data) {
+        if (data && data.list && data.list.length > 0) {
+          renderProducts(data.list, currentPage);
+          currentPage += 1;
+          isLoading = false;
+        } else {
+          if (currentPage === 1) {
+            $("#product-grid").html('<p>검색 결과가 없습니다.</p>');
+          }
+          hasMoreProducts = false;
+          isLoading = false;
+        }
+      },
+      error: function(xhr, status, error) {
+        isLoading = false;
+        if (currentPage === 1) {
+          $("#product-grid").html('<p>검색 중 오류가 발생했습니다.</p>');
+        }
+      }
+    });
+  }
+
+  function renderProducts(products, pageNum) {
+    let productContainer = $("#product-grid");
+    if (pageNum === 1) {
+      console.log("Clearing product grid");
+      productContainer.empty();
+    }
+
+    products.forEach(product => {
+      let productHTML = `
+            <div class="product-single">
+                <a href="/product/detail/${product.productId}">
+                    <div class="product-image">
+                        <img src="${product.imageUrl}" alt="${product.productName}">
+                    </div>
+                    <div class="product-details">
+                        <h6 class="brand">${product.brand}</h6>
+                        <h5 class="product-name">${product.productName}</h5>
+            `;
+      if (product.price != product.discountedPrice) {
+        productHTML += `
+                    <div class="row">
+                        <p class="percent">${product.formattedDiscountPercentage}%</p>
+                        <p class="original-price">${product.formattedPrice}원</p>
+                    </div>
+                `;
+      }
+
+      productHTML += `
+                        <p class="price">${product.formattedDiscountedPrice}원</p>
+                    </div>
+                </a>
+            </div>
+            `;
+
+      productContainer.append(productHTML);
+    });
+  }
+</script>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.fitzcode.admin.mapper.AdminCouponMapper">
+
+    <!-- 쿠폰 추가 -->
+    <insert id="insertCoupon" parameterType="CouponDTO" useGeneratedKeys="true" keyProperty="couponId">
+        INSERT INTO COUPON (coupon_code, description, coupon_type, discount_amount, discount_percentage, minimum_order_amount, expiry_date, is_active, created_at, applicable_categories)
+        VALUES (
+        #{couponCode},
+        #{description},
+        #{couponType},
+        #{discountAmount},
+        #{discountPercentage},
+        #{minimumOrderAmount},
+        #{expiryDate},
+        #{isActive},
+        #{createdAt},
+        #{applicableCategories}
+        )
+    </insert>
+
+    <!-- 전체 쿠폰 조회 -->
+    <select id="getAllCoupons" resultType="CouponDTO">
+        SELECT
+        coupon_id AS couponId,
+        coupon_code AS couponCode,
+        description,
+        coupon_type AS couponType,
+        discount_amount AS discountAmount,
+        discount_percentage AS discountPercentage,
+        minimum_order_amount AS minimumOrderAmount,
+        expiry_date AS expiryDate,
+        is_active AS isActive,
+        created_at AS createdAt,
+        applicable_categories AS applicableCategories
+        FROM COUPON
+        ORDER BY created_at DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- 특정 쿠폰 조회 -->
+    <select id="getCouponById" resultType="CouponDTO">
+        SELECT
+        coupon_id AS couponId,
+        coupon_code AS couponCode,
+        description,
+        coupon_type AS couponType,
+        discount_amount AS discountAmount,
+        discount_percentage AS discountPercentage,
+        minimum_order_amount AS minimumOrderAmount,
+        expiry_date AS expiryDate,
+        is_active AS isActive,
+        created_at AS createdAt,
+        applicable_categories AS applicableCategories
+        FROM COUPON
+        WHERE coupon_id = #{couponId}
+    </select>
+
+    <!-- 쿠폰 수정 -->
+    <update id="updateCoupon" parameterType="CouponDTO">
+        UPDATE COUPON
+        SET
+        coupon_code = #{couponCode},
+        description = #{description},
+        coupon_type = #{couponType},
+        discount_amount = #{discountAmount},
+        discount_percentage = #{discountPercentage},
+        minimum_order_amount = #{minimumOrderAmount},
+        expiry_date = #{expiryDate},
+        is_active = #{isActive},
+        applicable_categories = #{applicableCategories}
+        WHERE coupon_id = #{couponId}
+    </update>
+
+    <!-- 쿠폰 삭제 -->
+    <delete id="deleteCoupon">
+        DELETE FROM COUPON WHERE coupon_id = #{couponId}
+    </delete>
+
+    <!-- 전체 쿠폰 개수 조회 -->
+    <select id="countAllCoupons" resultType="int">
+        SELECT COUNT(*) FROM COUPON
+    </select>
+
+    <!-- 사용자에게 쿠폰 발급 -->
+    <insert id="issueCouponToUser">
+        INSERT INTO USER_COUPON (user_id, coupon_id, is_used, valid_until)
+        VALUES (
+        #{userId},
+        #{couponId},
+        0,
+        #{validUntil}
+        )
+        ON DUPLICATE KEY UPDATE valid_until = #{validUntil}
+    </insert>
+
+    <!-- 전체 사용자 ID 조회 -->
+    <select id="getAllUserIds" resultType="int">
+        SELECT user_id FROM USER
+    </select>
+</mapper>

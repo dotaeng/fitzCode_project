@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .main-banner { width: 100%; height: auto; max-width: 1200px; margin: 0 auto; display: block; }
+        .slider { overflow: hidden; white-space: nowrap; position: relative; z-index: 1; }
+        .slider-container { display: inline-block; transition: transform 0.5s ease; will-change: transform; }
+        .product-item { display: inline-block; width: 300px; margin: 0; vertical-align: top; position: relative; z-index: 1; text-align: center; cursor: pointer; }
+        .product-item img { width: 100%; height: 300px; object-fit: cover; }
+        .product-name { font-size: 14px; margin-top: 5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .product-price { font-size: 14px; margin-top: 5px; color: #666; }
+        .product-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            text-align: left;
+            padding-left: 10px;
+        }
+        .product-section {
+            max-width: 1200px;
+            margin: 100px auto 0 auto;
+            text-align: center;
+            position: relative;
+        }
+        .product-section:first-child {
+            margin-top: 0;
+        }
+        .discount-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(128, 128, 128, 0.55);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 14px;
+            z-index: 11;
+            font-weight: bold;
+        }
+        .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); background-color: transparent; color: #ccc; border: none; padding: 10px; cursor: pointer; font-size: 18px; z-index: 10; }
+        .prev-btn { left: 0; }
+        .next-btn { right: 0; }
+        .slider-btn:hover { color: #999; }
+
+        .style-section {
+            max-width: 1200px;
+            margin: 100px auto 0 auto;
+            text-align: center;
+            position: relative;
+        }
+        .style-grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            margin-bottom: 120px;
+        }
+        .card {
+            flex: 0 0 285px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+            cursor: pointer;
+        }
+        .card-header {
+            width: 100%;
+            height: 300px;
+            position: relative;
+        }
+        .card-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .card-content {
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-content-profile {
+            width: 40px;
+            height: 40px;
+            padding: 1px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+        }
+        .card-content-profile img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .card-content span {
+            font-size: 14px;
+            font-weight: bolder;
+            margin-top: 0;
+        }
+        .label_container {
+            display: block;
+            cursor: pointer;
+            user-select: none;
+        }
+        .label_container input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .label_container svg {
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 30px;
+            width: 30px;
+            transition: all 0.2s;
+            fill: #666;
+        }
+        .label_container input:checked ~ svg {
+            fill: #E3474F;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        a:hover,
+        a:focus {
+            background-color: transparent;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .product-item { width: 225px; }
+            .product-item img { height: 225px; }
+            .slider-btn { padding: 8px; font-size: 16px; }
+            .product-name, .product-price { font-size: 12px; }
+            .discount-badge { font-size: 12px; padding: 3px 8px; }
+            .card { flex: 0 0 225px; }
+            .card-header { height: 200px; }
+            .card-content span { font-size: 12px; }
+            .label_container svg { height: 25px; width: 25px; }
+        }
+        @media (max-width: 480px) {
+            .card { flex: 0 0 200px; }
+            .card-header { height: 150px; }
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header}"></div>
+
+<div>
+    <img src="/img/mainbanner.jpg" alt="Main Banner" class="main-banner">
+
+    <div class="product-section">
+        <h2 class="product-title">추천 상품</h2>
+        <button class="slider-btn prev-btn" onclick="moveSlide('pick', -1)"><</button>
+        <button class="slider-btn next-btn" onclick="moveSlide('pick', 1)">></button>
+        <div class="slider">
+            <div class="slider-container" id="pickSliderContainer"></div>
+        </div>
+    </div>
+
+    <div class="product-section">
+        <h2 class="product-title">할인 상품</h2>
+        <button class="slider-btn prev-btn" onclick="moveSlide('discount', -1)"><</button>
+        <button class="slider-btn next-btn" onclick="moveSlide('discount', 1)">></button>
+        <div class="slider">
+            <div class="slider-container" id="discountSliderContainer"></div>
+        </div>
+    </div>
+
+    <!-- 스타일 섹션 -->
+    <div class="style-section">
+        <h2 class="product-title">인기 스타일</h2>
+        <div class="style-grid" id="styleGridContainer"></div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer}"></div>
+
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}" defer></script>
+<script>
+    const slideWidth = 300;
+    const visibleSlides = 4;
+
+    const sliders = {
+        pick: { index: 0, products: [], total: 0, container: null },
+        discount: { index: 0, products: [], total: 0, container: null }
+    };
+
+    function initSlider(section, containerId, products) {
+        const sliderContainer = document.getElementById(containerId);
+        sliderContainer.innerHTML = '';
+        sliders[section].products = products || [];
+        sliders[section].total = sliders[section].products.length;
+        sliders[section].container = sliderContainer;
+
+        if (sliders[section].total === 0) {
+            sliderContainer.innerHTML = '<p style="color: #666; font-size: 16px;">표시할 상품이 없습니다.</p>';
+            return;
+        }
+
+        const repeatedProducts = [...sliders[section].products];
+        while (repeatedProducts.length < (sliders[section].total + visibleSlides + 1)) {
+            repeatedProducts.push(...sliders[section].products);
+        }
+
+        repeatedProducts.forEach((product, index) => {
+            const slide = document.createElement('div');
+            slide.className = 'product-item';
+            const imgSrc = section === 'pick' ? product.product.imageUrl : product.imageUrl;
+            let name = section === 'pick' ? product.product.productName : product.productName;
+            const price = section === 'pick' ? product.product.price : product.price;
+            const productId = section === 'pick' ? product.productId : product.productId;
+            const discountedPrice = section === 'discount' ? product.discountedPrice : null;
+            const discountPercentage = section === 'discount' ? product.discountPercentage : null;
+
+            const discountBadge = section === 'discount' && discountPercentage && discountPercentage !== '0' ?
+                `<span class="discount-badge">${discountPercentage}%</span>` : '';
+
+            if (name.length > 14) {
+                name = name.substring(0, 14);
+            }
+            slide.innerHTML = `
+                <a href="/product/detail/${productId}" style="text-decoration: none; color: inherit;">
+                    <img src="${imgSrc}" alt="${name}">
+                    ${discountBadge}
+                    <div class="product-name">${name}</div>
+                    <div class="product-price">KRW ${section === 'discount' && discountedPrice ? discountedPrice.toLocaleString() : price.toLocaleString()}</div>
+                </a>
+            `;
+            sliderContainer.appendChild(slide);
+        });
+
+        sliderContainer.style.width = `${repeatedProducts.length * slideWidth}px`;
+        sliderContainer.style.transform = `translateX(0px)`;
+    }
+
+    function moveSlide(section, direction) {
+        const slider = sliders[section];
+        const sliderContainer = slider.container;
+        slider.index += direction;
+
+        const maxIndex = slider.total * 2;
+        if (slider.index >= maxIndex) {
+            slider.index = slider.total;
+        } else if (slider.index < 0) {
+            slider.index = maxIndex - visibleSlides - 1;
+        }
+
+        sliderContainer.style.transition = 'transform 0.5s ease';
+        sliderContainer.style.transform = `translateX(-${slider.index * slideWidth}px)`;
+    }
+
+    // 스타일 섹션 초기화 함수
+    function initStyleSection(posts) {
+        const styleGridContainer = document.getElementById('styleGridContainer');
+        styleGridContainer.innerHTML = '';
+
+        if (!posts || posts.length === 0) {
+            styleGridContainer.innerHTML = '<p style="color: #666; font-size: 16px;">표시할 스타일이 없습니다.</p>';
+            return;
+        }
+
+        posts.slice(0, 4).forEach(post => { // 상위 4개만 표시
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="card-header">
+                    <a href="/community/detail/${post.post_id}">
+                        <img src="${post['thumbnail_image_url'] || '/img/default-style.jpg'}" alt="스타일 이미지" onerror="this.src='/img/default-style.jpg'"/>
+                    </a>
+                </div>
+                <div class="card-content">
+                    <div style="display: flex; align-items: center;">
+                        <span class="card-content-profile">
+                            <img src="${post['profile_image'] || '/img/default-profile.png'}" alt="프로필 이미지" onerror="this.src='/img/default-profile.png'"/>
+                        </span>
+                        <span>${post.user_name}</span>
+                    </div>
+                    <label class="label_container">
+                        <input type="checkbox" class="like-checkbox" data-post-id="${post.post_id}" ${post.isLiked ? 'checked' : ''}>
+                        <svg id="Layer_1" version="1.0" viewBox="0 0 24 24" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                            <path d="M16.4,4C14.6,4,13,4.9,12,6.3C11,4.9,9.4,4,7.6,4C4.5,4,2,6.5,2,9.6C2,14,12,22,12,22s10-8,10-12.4C22,6.5,19.5,4,16.4,4z"></path>
+                        </svg>
+                    </label>
+                </div>
+            `;
+            styleGridContainer.appendChild(card);
+        });
+
+        // 좋아요 체크박스 이벤트 처리
+        document.querySelectorAll('.like-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                const postId = this.getAttribute('data-post-id');
+                const isChecked = this.checked;
+                const url = isChecked ? `/api/community/like/${postId}` : `/api/community/unlike/${postId}`;
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ postId: postId })
+                })
+                    .then(response => {
+                        if (response.status === 400) {
+                            alert('로그인이 필요합니다.');
+                            window.location.href = '/login'; // 로그인 페이지로 리다이렉트
+                            return;
+                        }
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!data.success) {
+                            alert(data.message || '좋아요 처리에 실패했습니다.');
+                            this.checked = !isChecked;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.checked = !isChecked;
+                        console.error("네트워크에러 -> 로그인 안함")
+                    });
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 기존 추천 상품 및 할인 상품 로드
+        fetch('/api/pick-products', { credentials: 'include' })
+            .then(response => {
+                if (!response.ok) throw new Error('추천 상품 로드 실패');
+                return response.json();
+            })
+            .then(data => initSlider('pick', 'pickSliderContainer', data))
+            .catch(error => {
+                console.error('추천 상품 로드 중 오류:', error);
+                initSlider('pick', 'pickSliderContainer', []);
+            });
+
+        fetch('/api/discount-products', { credentials: 'include' })
+            .then(response => {
+                if (!response.ok) throw new Error('할인 상품 로드 실패');
+                return response.json();
+            })
+            .then(data => initSlider('discount', 'discountSliderContainer', data))
+            .catch(error => {
+                console.error('할인 상품 로드 중 오류:', error);
+                initSlider('discount', 'discountSliderContainer', []);
+            });
+
+        // 스타일 데이터 로드 (좋아요 수 기준 상위 4개)
+        fetch('/community/api/styles?sort=likes&limit=4', { credentials: 'include' })
+            .then(response => {
+                if (!response.ok) {
+                    // 응답이 JSON이 아닌 경우를 처리
+                    return response.text().then(text => {
+                        throw new Error(`인기 스타일 로드 실패: ${response.status} ${response.statusText}, Response: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => initStyleSection(data))
+            .catch(error => {
+                console.error('인기 스타일 로드 중 오류:', error);
+                initStyleSection([]);
+            });
+    });
+</script>
+</body>

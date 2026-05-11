@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      xmlns:sec="http://www.springframework.org/schema/security">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <th:block th:replace="~{fragments/header :: header-head}"></th:block>
+    <th:block th:replace="~{fragments/footer :: footer-head}"></th:block>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" th:href="@{/css/order/cart.css}" />
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container">
+    
+   <div class="title">
+       <h2>장바구니</h2>
+   </div>
+    
+    <div class="cart-list" id="cart-list">
+    
+    </div>
+    
+    
+    
+    
+<!--    <div id="orderSummaryModal" class="modal">-->
+<!--        <div class="modal-content">-->
+<!--            <span id="closeModal" class="close">&times;</span>-->
+<!--            -->
+<!--            <h2>Order Summary</h2>-->
+<!--            -->
+<!--            <div id="orderItemsContainer"></div>-->
+<!--            -->
+<!--            <div class="address">-->
+<!--                <h3>배송지</h3>-->
+<!--                <div class="address-selection">-->
+<!--                    <select id="userAddress">-->
+<!--                        <option value="">배송지 선택</option>-->
+<!--                    </select>-->
+<!--                    <button id="changeAddressBtn" onclick="changeAddress()">변경</button>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            -->
+<!--            <div class="final-price-section">-->
+<!--                최종 결제 가격: <span id="totalPrice"></span>-->
+<!--            </div>-->
+<!--            -->
+<!--            <button id="confirmCheckout" class="btn">결제하기</button>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    -->
+    
+    <!-- Modal -->
+    <div id="orderSummaryModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModal" class="close">&times;</span>
+            <h2>Order Summary</h2>
+            <div id="orderItemsContainer"></div>
+            <!--  get address of user using ajax call -->
+            <div class="address">
+                <!-- 배송지 선택 -->
+                <div class="address-section">
+                    <h3>배송지</h3>
+                    <div class="address-selection">
+                        <div id="userAddress">
+                            <p>배송지 선택</p>
+                        </div>
+                        <button id="changeAddressBtn" onclick="changeAddress()">변경</button>
+                    </div>
+                </div>
+            </div>
+            <div class="final-price-section">
+                <p>최종 결제 가격: <span id="totalPrice"></span></p>
+            </div>
+            <button id="confirmCheckout" class="btn">결제하기</button>
+            
+            
+        </div>
+    </div>
+
+    <!-- Sticky Bar 폼임 -->
+    <div class="sticky-container" id="stickyBar">
+        <div class="info">
+            <div class="number-of-items"></div>
+            <div class="finalPrice"></div>
+        </div>
+        <!-- 버튼 영역 -->
+        <div class="btn_area">
+            <button class="btn_action buy_button sticky-buy-button showSummaryButton" onclick="showSummary()">
+                구매
+            </button>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+
+
+
+<script>
+    let selectedItems = new Map();
+    let finalPriceBeforeCoupon;
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("Page loaded");
+        IMP.init("imp44587248")
+        getUserCoupon();
+        getCartItems();
+    });
+
+    function getCartItems() {
+        $.ajax({
+            url: "/api/cart/getCartItems",
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+                console.log("Cart items received:", response);
+                renderCartItems(response);
+                attachEventListeners();
+            },
+            error: function (error) {
+                console.error("Error fetching cart items:", error);
+            }
+        });
+    }
+
+
+    function renderCartItems(cartItems) {
+        const cartList = document.getElementById("cart-list");
+        cartList.innerHTML = "";
+
+        cartItems.forEach(cartItem => {
+            const itemElement = document.createElement("div");
+            itemElement.classList.add("cart-item");
+            itemElement.id = `cart-item-${cartItem.cartId}`;
+
+            let couponOptions = `<option value="none">No Coupon</option>`;
+            if (userCoupons.length > 0) {
+                couponOptions += userCoupons.map(coupon =>
+                    `<option value="${coupon.couponId}">${coupon.description} (최소금액: ${coupon.formattedMinimumOrderAmount})</option>`
+                ).join("");
+            }
+
+            itemElement.innerHTML = `
+            <div class="cart-item-content">
+            <div class="productId" data-productId="${cartItem.productId}"></div>
+            <input type="checkbox" class="cart-item-checkbox" id="${cartItem.cartId}">
+                <img src="${cartItem.imageUrl}" alt="Product Image" class="cart-item-image">
+                
+                <div class="cart-item-details">
+                    <div class="cart-item-top">
+                        <div class="cart-item-header">
+                            <p class="cart-item-name">${cartItem.productName}</p>
+                            <p class="cart-item-date">${cartItem.formattedCreatedAt}</p>
+                        </div>
+                        
+                        <p class="cart-item-description">${cartItem.description}</p>
+                    </div>
+                    
+                    <p class="cart-item-price">
+                        <span class="item-price" data-price="${cartItem.discountedPrice}">${cartItem.formattedDiscountedPrice + '원'}</span>
+                    </p>
+                    
+                    <div class="dropdowns">
+                        <div class="dropdown-top">
+                            <label>Size:</label>
+                            <select class="cart-item-size-selector">
+                                ${cartItem.productSizes
+                                    .filter(size => size.stock >= 0)
+                                    .map(size =>
+                                        `<option value="${size.sizeName}" data-sizecode="${size.sizeCode}"
+                                            ${size.sizeCode === cartItem.sizeCode ? "selected" : ""}>
+                                            ${size.sizeDescription} (Stock: ${size.stock})
+                                        </option>`
+                                    ).join("")}
+                            </select>
+                    
+                            <label>Coupon:</label>
+                            <select class="cart-item-coupon">
+                                ${couponOptions}
+                            </select>
+                        </div>
+                    
+                        <div class="cart-item-quantity">
+                            <button class="quantity-btn decrease">-</button>
+                            <input type="number" class="quantity-input" value="${cartItem.quantity}" min="1" max="${cartItem.stock}">
+                            <button class="quantity-btn increase">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="cart-item-footer">
+                        <p class="cart-item-final-price"><span class="final-price">${cartItem.discountedPrice + '원'}</span></p>
+                        <button class="delete-cart-item" data-cartId="${cartItem.cartId}">삭제</button>
+                    </div>
+
+                </div>
+            </div>
+        `;
+
+            cartList.appendChild(itemElement);
+        });
+    }
+
+
+    function attachEventListeners() {
+        document.querySelectorAll(".cart-item").forEach(cartItem => {
+            const decreaseBtn = cartItem.querySelector(".quantity-btn.decrease");
+            const increaseBtn = cartItem.querySelector(".quantity-btn.increase");
+            const quantityInput = cartItem.querySelector(".quantity-input");
+            const priceElement = cartItem.querySelector(".item-price");
+            const finalPriceElement = cartItem.querySelector(".final-price");
+            const checkbox = cartItem.querySelector(".cart-item-checkbox");
+            const sizeSelector = cartItem.querySelector(".cart-item-size-selector");
+            const couponSelect = cartItem.querySelector(".cart-item-coupon");
+            const deleteBtn = cartItem.querySelector(".delete-cart-item");
+
+
+            const updateFinalPrice = async () => {
+                let basePrice = parseInt(priceElement.dataset.price) || 0;
+                const quantity = parseInt(quantityInput.value) || 1;
+                finalPriceBeforeCoupon = basePrice * quantity;
+
+                const selectedCouponId = couponSelect.value !== "none" ? parseInt(couponSelect.value, 10) : null;
+                const productId = parseInt(cartItem.querySelector(".productId").dataset.productid, 10);
+
+                // If there's a coupon, wait for the AJAX call to complete
+                if (selectedCouponId) {
+                    try {
+                        const response = await $.ajax({
+                            url: "/coupon/getPriceWithCoupon",
+                            data: { productId: productId, couponId: selectedCouponId },
+                            type: "GET",
+                            dataType: "json"
+                        });
+                        console.log(response);
+                        basePrice = response;
+                    } catch (error) {
+                        finalPriceElement.textContent = "쿠폰을 쓰는데 실패했습니다.";
+                        return; // Exit the function if there's an error in the AJAX request
+                    }
+                }
+
+                let totalPrice = basePrice * quantity;
+                finalPriceElement.textContent = `${totalPrice.toLocaleString("ko-KR")}원`;
+
+                updateCouponAvailability();
+
+                if (selectedItems.has(parseInt(checkbox.id))) {
+                    updateSelectedItems(checkbox, cartItem);
+                }
+            };
+
+
+            deleteBtn.addEventListener("click", function () {
+                const cartId = this.getAttribute("data-cartId"); // Get cart ID from button
+                deleteCartItem(cartId);
+            });
+
+
+            couponSelect.addEventListener("change", function () {
+                handleCouponSelection(this);
+                updateFinalPrice();
+            });
+            
+            decreaseBtn.addEventListener("click", () => {
+                let value = parseInt(quantityInput.value);
+                if (value > 1) {
+                    quantityInput.value = value - 1;
+                }
+                updateFinalPrice();
+            });
+            
+            increaseBtn.addEventListener("click", () => {
+                let value = parseInt(quantityInput.value);
+                const maxQuantity = parseInt(quantityInput.max);
+                if (value < maxQuantity) {
+                    quantityInput.value = value + 1;
+                }
+                updateFinalPrice();
+            });
+            
+            quantityInput.addEventListener("input", updateFinalPrice);
+
+            
+            cartItem.addEventListener("click", function (event) {
+                if (!isValidClick(event)) {
+                    checkbox.checked = !checkbox.checked;
+                    updateSelectedItems(checkbox, cartItem);
+                }
+            });
+            
+            checkbox.addEventListener("change", function () {
+                updateSelectedItems(checkbox, cartItem);
+            });
+
+
+            sizeSelector.addEventListener("change", function () {
+                const selectedText = this.options[this.selectedIndex].textContent;
+                const stockMatch = selectedText.match(/\(Stock: (\d+)\)/);
+                const newMaxStock = stockMatch ? parseInt(stockMatch[1]) : 1;
+                quantityInput.max = newMaxStock;
+                updateFinalPrice();
+
+                if (parseInt(quantityInput.value) > newMaxStock) {
+                    quantityInput.value = newMaxStock;
+                }
+            });
+
+            updateFinalPrice();
+        });
+
+
+        function isValidClick(event) {
+            return event.target.closest(".quantity-btn") ||
+                event.target.closest(".quantity-input") ||
+                event.target.closest(".cart-item-coupon") ||
+                event.target.closest(".cart-item-size-selector") ||
+                event.target.closest(".delete-cart-item") ||
+                event.target.tagName === "INPUT";
+        }
+
+        function updateSelectedItems(checkbox, item) {
+            const cartId = parseInt(item.querySelector(".cart-item-checkbox").id, 10);
+            const productId = parseInt(item.querySelector(".productId").dataset.productid, 10);
+            const quantityInput = item.querySelector(".quantity-input");
+            const finalPriceElement = item.querySelector(".final-price");
+            const sizeSelector = item.querySelector(".cart-item-size-selector");
+            const selectedOption = sizeSelector.options[sizeSelector.selectedIndex];
+
+            // Get the size name (displayed to the user) and the size code (from data-sizecode)
+            const selectedSizeName = selectedOption.textContent.trim();  // The size name (e.g., "Small", "Medium")
+            const selectedSizeCode = parseInt(selectedOption.dataset.sizecode, 10);  // The size code from the data-sizecode attribute
+
+            // Get selected coupon details
+            const couponDropdown = item.querySelector(".cart-item-coupon");
+            const selectedCouponId = couponDropdown.value !== "none" ? parseInt(couponDropdown.value, 10) : null;
+            const selectedCouponDescription = couponDropdown.options[couponDropdown.selectedIndex].text || null;
+
+            // Get product name and image URL
+            const productName = item.querySelector(".cart-item-name").textContent.trim();  // Adjust selector based on your HTML structure
+            const productImageUrl = item.querySelector(".cart-item-image").src;  // Adjust selector based on your HTML structure
+
+            if (checkbox.checked) {
+                selectedItems.set(cartId, {
+                    cartId: cartId,
+                    productId: productId,
+                    quantity: parseInt(quantityInput.value, 10),
+                    finalPrice: parseInt(finalPriceElement.textContent.replace(/₩|,/g, ""), 10),
+                    sizeName: selectedSizeName,  // Store the size name
+                    sizeCode: selectedSizeCode,  // Store the size code
+                    couponId: selectedCouponId,
+                    couponDescription: selectedCouponDescription,
+                    productName: productName,  // Store the product name
+                    productImageUrl: productImageUrl  // Store the product image URL
+                });
+            } else {
+                selectedItems.delete(cartId);
+            }
+
+            console.log("Selected Items:", Array.from(selectedItems.values()));
+            updateStickyBar();
+        }
+        
+        function updateStickyBar() {
+            let stickyBar = document.getElementById("stickyBar");
+            let totalItems = selectedItems.size;
+            let totalPrice = 0;
+
+            selectedItems.forEach((item) => {
+                totalPrice += item.finalPrice;
+            });
+            console.log(`Total Items: ${totalItems}, Total Price: ₩${totalPrice.toLocaleString()}`);
+
+            if (totalItems >= 1) {  // Show when at least one item is selected
+                stickyBar.style.display = "flex";
+                document.querySelector(".number-of-items").textContent = `선택한 상품: ${totalItems}개`;
+                document.querySelector(".finalPrice").textContent = `총 가격: ₩${totalPrice.toLocaleString()}`;
+            } else {
+                stickyBar.style.display = "none";
+            }
+        }
+        
+
+
+    }
+    
+
+    function handleCouponSelection(selectedDropdown) {
+        const allCouponDropdowns = document.querySelectorAll(".cart-item-coupon");
+        let usedCoupons = new Set();
+        allCouponDropdowns.forEach(dropdown => {
+            if (dropdown.value !== "none") {
+                usedCoupons.add(dropdown.value);
+            }
+        });
+        
+        allCouponDropdowns.forEach(dropdown => {
+            // const cartItem = dropdown.closest(".cart-item");
+            // const finalPrice = parseInt(cartItem.querySelector(".final-price").textContent.replace(/₩|,/g, ""), 10);
+
+            dropdown.querySelectorAll("option").forEach(option => {
+                const coupon = userCoupons.find(c => c.couponId.toString() === option.value);
+
+                if (coupon) {
+                    // Disable if coupon is already used OR if the final price is below minimum order amount
+                    option.disabled = usedCoupons.has(option.value) && option.value !== dropdown.value
+                        || finalPriceBeforeCoupon < coupon.minimumOrderAmount;
+                }
+            });
+        });
+        
+        
+    }
+
+
+
+    function updateCouponAvailability() {
+        // Get all currently selected coupon IDs
+        let usedCoupons = new Set();
+        document.querySelectorAll(".cart-item-coupon").forEach(dropdown => {
+            if (dropdown.value !== "none") {
+                usedCoupons.add(dropdown.value);
+            }
+        });
+
+        document.querySelectorAll(".cart-item").forEach(cartItem => {
+            // const finalPrice = parseInt(cartItem.querySelector(".final-price").textContent.replace(/₩|,/g, ""), 10);
+
+            const couponDropdown = cartItem.querySelector(".cart-item-coupon");
+            let selectedCouponId = couponDropdown.value;
+            let isCouponValid = false;
+
+            couponDropdown.querySelectorAll("option").forEach(option => {
+                const coupon = userCoupons.find(c => c.couponId.toString() === option.value);
+
+                if (coupon) {
+                    // Check if coupon is used elsewhere OR if price is below min amount
+                    const isUsedElsewhere = usedCoupons.has(option.value) && option.value !== selectedCouponId;
+                    const isBelowMinOrder = finalPriceBeforeCoupon < coupon.minimumOrderAmount;
+
+                    option.disabled = isUsedElsewhere || isBelowMinOrder;
+
+                    if (!isBelowMinOrder && option.value === selectedCouponId) {
+                        isCouponValid = true;
+                    }
+                }
+            });
+            
+            if (!isCouponValid) {
+                couponDropdown.value = "none";
+            }
+        });
+    }
+    
+
+    let userCoupons = [];
+    function getUserCoupon() {
+        console.log("getting user coupons");
+        $.ajax({
+            url: "/coupon/getUsersCoupons",
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+                console.log(response);
+                
+                if (response.length > 0) {
+                    userCoupons = response;
+                } else {
+                    userCoupons = [];
+                }
+            },
+            error: function () {
+                console.error("Failed to fetch coupons");
+                userCoupons = [];
+            }
+        });
+    }
+
+    function checkValidCouponAndCalculatePrice() {
+        console.log("checking coupon");
+        console.log("calculating final price with couponId: " + couponId);
+        console.log("for product with productId" + productId);
+        $.ajax({
+            url: "/coupon/getPriceWithCoupon",
+            data: { productId: productId, couponId: couponId },
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+                console.log(response);
+                finalPrice = response;
+                console.log("finalPrice is set to " + response);
+                $("#finalPrice").html(response);
+            },
+            error: function () {
+                $("#finalPrice").html("<p>쿠폰을 쓰는데 실패했습니다.</p>");
+            }
+        });
+    }
+
+
+    let totalPrice = 0;
+    
+    
+    
+    function showSummary() {
+        let stickyBar = document.getElementById("stickyBar");
+        stickyBar.style.display = "none";
+        console.log("showing summary");
+        const modal = document.getElementById("orderSummaryModal");
+        const orderItemsContainer = document.getElementById("orderItemsContainer");
+        const totalPriceElement = document.getElementById("totalPrice");
+        getUserAddress();
+
+        // Clear previous order items
+        orderItemsContainer.innerHTML = '';
+        totalPrice = 0;
+
+
+        // Loop through the selected items and populate the order summary
+        selectedItems.forEach(item => {
+            const itemElement = document.createElement("div");
+            itemElement.classList.add("order-item");
+
+            itemElement.innerHTML = `
+            <img src="${item.productImageUrl}" alt="${item.productName}" width="50" />
+            <span><strong>${item.productName}</strong></span>
+            <span>Size: ${item.sizeName}</span>
+            <span>Quantity: ${item.quantity}</span>
+            <span>Price: ₩${item.finalPrice.toLocaleString()}</span>
+            ${item.couponDescription ? `<span>Coupon: ${item.couponDescription}</span><br />` : ''}
+        `;
+
+            orderItemsContainer.appendChild(itemElement);
+
+            // Add to total price
+            totalPrice += item.finalPrice;
+        });
+
+        // Display total price
+        totalPriceElement.textContent = `₩${totalPrice.toLocaleString()}`;
+
+        // Show the modal
+        modal.style.display = "block";
+    }
+    
+    
+
+    // Close the modal when the user clicks the close button
+    document.getElementById("closeModal").addEventListener("click", function() {
+        document.getElementById("orderSummaryModal").style.display = "none";
+    });
+
+    // Close the modal if the user clicks anywhere outside the modal
+    window.addEventListener("click", function(event) {
+        if (event.target === document.getElementById("orderSummaryModal")) {
+            document.getElementById("orderSummaryModal").style.display = "none";
+        }
+    });
+
+    
+    document.getElementById("confirmCheckout").addEventListener("click", function() {
+        // portOne, make it a transaction with creating the order
+        document.getElementById("orderSummaryModal").style.display = "none";
+        proceedToCheckout(totalPrice);
+    });
+
+
+
+    let addressId;
+    let addressLine1;
+    let postalCode;
+
+    function getUserAddress() {
+        console.log("getting user address");
+        $.ajax({
+            url: "/api/order/getUserAddress",
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+                console.log(response);
+                if (response.length > 0) {
+                    renderAddressDropdown(response);
+                } else {
+                    $("#userAddress").html("<p>등록된 주소가 없습니다.</p>");
+                }
+            },
+            error: function () {
+                $("#userAddress").html("<p>주소를 불러올 수 없습니다.</p>");
+            }
+        });
+    }
+
+    function renderAddressDropdown(addressList) {
+        let $select = $("<select>").attr("id", "addressSelect").on("change", function () {
+            let selectedIndex = $(this).val();
+            updateSelectedAddress(addressList[selectedIndex]);
+        });
+
+        addressList.forEach((address, index) => {
+            $select.append($("<option>", {
+                value: index,
+                text: `${address.addressLine1} (우편번호: ${address.postalCode})`
+            }));
+        });
+
+        $("#userAddress").html($select);
+        updateSelectedAddress(addressList[0]);
+    }
+
+    function updateSelectedAddress(address) {
+        addressId = address.addressId;
+        addressLine1 = address.addressLine1;
+        postalCode = address.postalCode;
+        console.log("Selected Address:", addressLine1, postalCode);
+    }
+
+    function changeAddress() {
+        console.log("change address pressed");
+        new daum.Postcode({
+            oncomplete: function (data) {
+                let newAddress = {
+                    addressId: null,
+                    addressLine1: data.roadAddress,
+                    postalCode: data.zonecode
+                };
+                addNewAddressToDropdown(newAddress);
+            }
+        }).open();
+    }
+
+    function addNewAddressToDropdown(newAddress) {
+        let $select = $("#addressSelect");
+        let newIndex = $select.children().length;
+        $select.append($("<option>", {
+            value: newIndex,
+            text: `${newAddress.addressLine1} (우편번호: ${newAddress.postalCode})`,
+            selected: true
+        }));
+
+        updateSelectedAddress(newAddress);
+    }
+    
+    function proceedToCheckout() {
+        console.log(totalPrice);
+        $.ajax({
+            url: "/payment/getPostOneInfo",
+            type: "POST",
+            dataType: "json",
+            data: {totalPrice: totalPrice},
+            success: function (response) {
+                requestPayment(response);
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching products:", error);
+            }
+        });
+    }
+    
+    function requestPayment(paymentInfo) {
+        // TODO group as one transaction, if it fails request for refund
+        // call portOne
+        IMP.request_pay(
+            {
+                channelKey: paymentInfo.channelKey,
+                pay_method: paymentInfo.payMethod,
+                merchant_uid: paymentInfo.merchant_uid,
+                name: paymentInfo.name,
+                amount: paymentInfo.amount
+            },
+            async (response) => {
+                if (response.error_code != null) {
+                    return alert(`결제에 실패하였습니다. 에러 내용: ${response.error_msg}`);
+                }
+                console.log(response);
+                let orderDetail = Array.from(selectedItems.values());
+                let data = {
+                    imp_uid: response.imp_uid,
+                    merchant_uid: response.merchant_uid,
+                    totalPrice: totalPrice,
+                    addressId: addressId,
+                    addressLine1: addressLine1,
+                    postalCode: postalCode,
+                    orderDetail: orderDetail
+                }
+                console.log(data);
+                $.ajax({
+                    url: "api/order/createOrderFromCart",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(data),
+                    success: function (successOrder) {
+                        console.log("Order created successfully:", successOrder);
+                        window.location.href = `/order/${successOrder.orderId}`;
+                        
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Payment notification failed:", xhr.responseText);
+                    }
+                });
+            }
+        );
+    }
+
+
+
+    function deleteCartItem(cartId) {
+        console.log("Deleting cart item with ID:", cartId);
+
+        
+
+        $.ajax({
+            url: "/api/cart/delete",
+            data: { cartId: cartId },
+            type: "POST",
+            success: function (response) {
+                console.log(response);
+                const cartItemElement = document.querySelector(`#cart-item-${cartId}`).closest(".cart-item");
+
+                if (cartItemElement) {
+                    cartItemElement.remove();
+                }
+            },
+            error: function () {
+                console.log("Error deleting cart item");
+            }
+        });
+    }
+
+
+
+
+    
+
+
+    
+
+
+
+</script>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+
+</html>

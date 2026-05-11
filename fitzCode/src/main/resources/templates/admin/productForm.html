@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <link rel="stylesheet" th:href="@{/css/admin/productForm.css}" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="form-container">
+    <div class="header-row">
+      <div>
+        <h2>상품 등록</h2>
+        <div class="underline"></div>
+      </div>
+      <div class="header-buttons">
+        <button type="button" class="header-btn" id="excelUploadBtn">엑셀 업로드</button>
+        <button type="button" class="header-btn" onclick="history.back()">뒤로가기</button>
+      </div>
+    </div>
+    <form th:action="@{/admin/products/add}" th:object="${product}" method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="productName">상품명</label>
+        <input type="text" id="productName" th:field="*{productName}" required />
+        <span th:errors="*{productName}" class="error"></span>
+      </div>
+      <div th:if="${error}" class="error" th:text="${error}"></div>
+      <div class="form-group">
+        <label for="description">설명</label>
+        <textarea id="description" th:field="*{description}" rows="5"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="brand">브랜드</label>
+        <input type="text" id="brand" th:field="*{brand}" required />
+      </div>
+      <div class="price-row">
+        <div class="form-group">
+          <label for="price">가격</label>
+          <input type="number" id="price" th:field="*{price}" required min="0" />
+        </div>
+        <div class="form-group">
+          <label for="discountedPrice">할인가</label>
+          <input type="number" id="discountedPrice" th:field="*{discountedPrice}" min="0" />
+        </div>
+      </div>
+      <div class="flex-row">
+        <div class="form-group">
+          <label for="parentCategoryId">상위 카테고리</label>
+          <select id="parentCategoryId" name="parentCategoryId" required>
+            <option value="">상위 카테고리 선택</option>
+            <option th:each="category : ${parentCategories}"
+                    th:value="${category.categoryId}"
+                    th:text="${category.name}"></option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="categoryId">하위 카테고리</label>
+          <select id="categoryId" th:field="*{categoryId}" disabled required>
+            <option value="">하위 카테고리 선택</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex-row">
+        <div class="form-group">
+          <label for="mainImageFile">메인 이미지</label>
+          <input type="file" id="mainImageFile" name="mainImageFile" accept="image/*" required />
+          <div class="image-preview" id="mainImagePreview"></div>
+        </div>
+        <div class="form-group">
+          <label>추가 이미지</label>
+          <div class="additional-images" id="additionalImages">
+            <div class="additional-image">
+              <input type="file" name="additionalImageFiles" accept="image/*" />
+              <button type="button" class="remove-btn">삭제</button>
+            </div>
+          </div>
+          <button type="button" class="add-btn" id="addImage">이미지 추가</button>
+          <div class="image-preview" id="additionalImagePreview"></div>
+        </div>
+      </div>
+      <div class="size-status-row">
+        <div class="size-table-container">
+          <label>사이즈별 재고</label>
+          <table class="size-table" id="sizeTable">
+            <thead>
+            <tr>
+              <th>사이즈</th>
+              <th>재고</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="status-buttons">
+          <div class="status-label">상태</div>
+          <input type="hidden" id="status" th:field="*{status}" />
+          <div class="status-btn-container">
+            <div class="status-btn" data-value="ACTIVE">판매중</div>
+            <div class="status-btn" data-value="SOLD_OUT">품절</div>
+            <div class="status-btn" data-value="INACTIVE">비활성화</div>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn">등록</button>
+    </form>
+
+    <!-- 엑셀 업로드 모달 -->
+    <div class="modal" id="excelModal">
+      <div class="modal-content">
+        <span class="close-btn">×</span>
+        <h3>엑셀 업로드</h3>
+        <form th:action="@{/admin/products/addExcel}" method="post" enctype="multipart/form-data" id="excelUploadForm">
+          <div class="form-group">
+            <label for="excelFile">엑셀 파일</label>
+            <input type="file" id="excelFile" name="excelFile" accept=".xlsx" required />
+          </div>
+          <button type="submit" class="submit-btn">업로드</button>
+          <span class="message" th:text="${message}"></span>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script th:src="@{/js/admin/productForm.js}"></script>
+</body>
+</html>

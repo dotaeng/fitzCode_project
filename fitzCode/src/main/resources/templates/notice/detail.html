@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <link rel="stylesheet" th:href="@{/css/notice/detail.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/header}"></div>
+<div class="notice-sidebar">
+  <h4>고객센터</h4>
+  <ul>
+    <li><a th:href="@{/notice}" th:classappend="${menuCurrentPage == 'notice'} ? 'active'">공지사항</a></li>
+    <li><a th:href="@{/notice/faq}" th:classappend="${menuCurrentPage == 'faq'} ? 'active'">FAQ</a></li>
+  </ul>
+</div>
+<div class="notice-main-wrapper">
+  <div class="notice-main-content">
+    <div class="notice-header">
+    </div>
+    <div class="notice-detail">
+      <h2 th:text="${notice.title}">공지사항 제목</h2>
+      <p><strong>작성일:</strong> <span th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm:ss')}">작성일</span></p>
+      <p><strong>수정일:</strong> <span th:text="${notice.updatedAt != null ? #temporals.format(notice.updatedAt, 'yyyy-MM-dd HH:mm:ss') : '수정되지 않음'}">수정일</span></p>
+      <div class="notice-attachment" th:if="${notice.attachmentUrl}">
+        <p>
+          <img th:src="@{/img/attachments.png}" alt="첨부 파일 아이콘">
+          <a th:href="@{/notice/{id}/download(id=${notice.noticeId})}" th:text="${notice.attachmentName}"></a>
+          <span class="file-size" th:if="${notice.attachmentSize != null}" th:text="${#numbers.formatDecimal(notice.attachmentSize / 1024.0 / 1024.0, 1, 2) + ' MB'}"></span>
+          <span class="file-size" th:if="${notice.attachmentSize == null}">-</span>
+        </p>
+      </div>
+      <div class="notice-content-container">
+        <div class="content-text" th:utext="${notice.content}">공지사항 내용</div>
+        <div class="notice-image" th:if="${notice.imageUrl}">
+          <img th:src="${notice.imageUrl}" alt="공지사항 대표 이미지">
+        </div>
+      </div>
+    </div>
+    <div class="notice-button-container">
+      <a th:href="@{/notice}" class="notice-list-btn">목록으로</a>
+    </div>
+    <!-- 페이지네이션 추가 -->
+    <div class="pagination" th:if="${totalPages > 1}">
+      <a th:href="@{/notice(page=${currentPage - 1})}" th:class="${currentPage == 1} ? 'disabled'" th:text="'<'"></a>
+      <a th:each="page : ${pageNumbers}"
+         th:href="@{/notice(page=${page})}"
+         th:text="${page}"
+         th:class="${page == currentPage} ? 'active'"></a>
+      <a th:href="@{/notice(page=${currentPage + 1})}" th:class="${currentPage == totalPages} ? 'disabled'" th:text="'>'"></a>
+    </div>
+  </div>
+</div>
+<div class="footer-section">
+  <div th:replace="~{fragments/footer}"></div>
+  <script th:src="@{/js/admin/notifications.js}"></script>
+  <script th:src="@{/js/admin/headerNotification.js}"></script>
+</div>
+</body>
+</html>

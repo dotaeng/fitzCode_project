@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h2 {
+            text-align: left;
+            color: #333;
+            font-size: 24px;
+            margin: 0;
+            position: relative;
+            display: inline-block;
+        }
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #2f2f32;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .info-table th, .info-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .info-table th {
+            background-color: #2f2f32;
+            color: #fff;
+            font-weight: 600;
+            width: 16.66%;
+        }
+        .info-table td {
+            width: 16.66%;
+        }
+        .info-table .single-row th {
+            width: 150px;
+        }
+        .refund-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .refund-table th, .refund-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .refund-table th {
+            background-color: #2f2f32;
+            color: #fff;
+            font-weight: 600;
+        }
+        .btn {
+            padding: 8px 16px;
+            background-color: #2f2f32;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background-color: #2e4763;
+        }
+        .btn-secondary {
+            background-color: #dc3545;
+            margin-left: 10px;
+        }
+        .btn-secondary:hover {
+            background-color: #a71d2a;
+        }
+        .btn-disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .form-actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .total-amount {
+            text-align: right;
+            font-size: 16px;
+            color: #333;
+            margin-top: 10px;
+        }
+        .total-amount span {
+            font-weight: bold;
+            color: #2f2f32;
+        }
+        .custom-amount-input {
+            width: 150px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .account-info {
+            margin-top: 20px;
+            display: none;
+        }
+        .account-info div {
+            margin-bottom: 10px;
+        }
+        .account-info label {
+            display: inline-block;
+            width: 100px;
+            font-weight: bold;
+        }
+        .account-info span {
+            font-size: 14px;
+        }
+        .error-message { color: red; }
+        .success-message { color: green; }
+        #message {
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>환불 상세</h2>
+        <a th:href="@{/admin/products/refund}" class="btn">뒤로가기</a>
+    </div>
+    <table class="info-table">
+        <tr>
+            <th>환불 번호</th>
+            <td th:text="${refund.refundId} ?: '1'"></td>
+            <th>주문 번호</th>
+            <td th:text="${refund.orderId} ?: '1'"></td>
+            <th>결제 번호</th>
+            <td th:text="${refund.paymentId} ?: '1'"></td>
+        </tr>
+        <tr class="single-row">
+            <th>결제 트랜잭션 번호</th>
+            <td colspan="5" th:text="${refund.transactionId} ?: 'imp값'"></td>
+        </tr>
+        <tr class="single-row">
+            <th>사용자</th>
+            <td colspan="5" th:text="${refund.userName} ?: '이름'"></td>
+        </tr>
+        <tr class="single-row">
+            <th>환불 사유</th>
+            <td colspan="5" th:text="${refund.refundReason} ?: '이유'"></td>
+        </tr>
+        <tr class="single-row">
+            <th>환불 상태</th>
+            <td colspan="5" th:text="${refund.getRefundStatusInKorean()} ?: '환불 완료'"></td>
+        </tr>
+        <tr class="single-row">
+            <th>결제 금액</th>
+            <td colspan="5" th:text="${#numbers.formatInteger(refund.paymentAmount, 3, 'COMMA')} ?: '100,000' + '원'"></td>
+        </tr>
+        <tr class="single-row">
+            <th>결제 방식</th>
+            <td colspan="5" th:text="${refund.refundMethod == 1 ? '카드' : refund.refundMethod == 2 ? '계좌' : '간편결제'}"></td>
+        </tr>
+    </table>
+
+    <!-- 환불 신청된 상품 목록 -->
+    <table class="refund-table">
+        <thead>
+        <tr>
+            <th>선택</th>
+            <th>상품명</th>
+            <th>수량</th>
+            <th>단가</th>
+            <th>합계</th>
+            <th>환불 상태</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item, stat : ${refund.requestedItems}">
+            <td>
+                <input type="checkbox" class="refund-item" th:name="'item_' + ${item.orderDetailId}"
+                       th:value="${item.orderDetailId}"
+                       th:data-price="${item.price * item.quantity}">
+            </td>
+            <td th:text="${item.productName} ?: '-'"></td>
+            <td th:text="${item.quantity} ?: '-'"></td>
+            <td th:text="${#numbers.formatInteger(item.price, 3, 'COMMA')} ?: '-' + '원'"></td>
+            <td th:text="${#numbers.formatInteger(item.price * item.quantity, 3, 'COMMA')} ?: '-' + '원'"></td>
+            <td th:text="${item.getRefundStatusInKorean()} ?: '-'"></td>
+        </tr>
+        <tr th:unless="${refund.requestedItems != null and !refund.requestedItems.isEmpty()}">
+            <td colspan="6">환불 신청된 상품이 없습니다.</td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="total-amount">
+        <p>총 환불 요청 금액: <span id="totalRequestedAmount" th:text="${#numbers.formatInteger(refund.getCalculatedRefundAmount(), 3, 'COMMA')} ?: '427,000'"></span>원</p>
+        <input type="number" id="customRefundAmount" name="customRefundAmount" class="custom-amount-input" min="1"
+               readonly value="0" placeholder="선택된 항목의 환불 금액">
+    </div>
+
+    <!-- 계좌 결제일 경우 계좌 정보 표시 -->
+    <div class="account-info" id="accountInfo" th:if="${refund.refundMethod == 2}">
+        <div>
+            <label>예금주</label>
+            <span th:text="${refund.accountHolder != null ? refund.accountHolder : '계좌 미등록'}"></span>
+        </div>
+        <div>
+            <label>은행명</label>
+            <span th:text="${refund.bankName != null ? refund.bankName : '계좌 미등록'}"></span>
+        </div>
+        <div>
+            <label>계좌번호</label>
+            <span th:text="${refund.accountNumber != null ? refund.accountNumber : '계좌 미등록'}"></span>
+        </div>
+    </div>
+
+    <!-- 환불 처리 버튼 -->
+    <div class="form-actions" th:if="${refund.refundStatus != null}">
+        <button type="button" class="btn" id="completeRefund"
+                th:disabled="${refund.refundMethod == 2 and (refund.accountHolder == null or refund.bankName == null or refund.accountNumber == null)}"
+                th:classappend="${refund.refundMethod == 2 and (refund.accountHolder == null or refund.bankName == null or refund.accountNumber == null) ? 'btn-disabled' : ''}">
+            환불 완료
+        </button>
+        <button type="button" class="btn btn-secondary" id="rejectRefund">환불 거절</button>
+    </div>
+
+    <div id="message" class="message"></div>
+</div>
+
+<script th:inline="javascript">
+    $(document).ready(function() {
+        let refundId = /*[[${refund.refundId}]]*/;
+        let refundMethod = /*[[${refund.refundMethod}]]*/; // 1: 카드, 2: 계좌, 3: 간편결제
+        let accountHolder = /*[[${refund.accountHolder}]]*/;
+        let bankName = /*[[${refund.bankName}]]*/;
+        let accountNumber = /*[[${refund.accountNumber}]]*/;
+        console.log('Refund ID:', refundId, 'Refund Method:', refundMethod);
+
+        // 계좌 결제일 경우 계좌 정보 표시
+        if (refundMethod === 2) {
+            $('#accountInfo').show();
+            if (!accountHolder || !bankName || !accountNumber) {
+                $('#message').removeClass('success-message').addClass('error-message')
+                    .text('계좌 정보가 등록되어 있지 않습니다. 환불 처리가 불가능합니다.').show();
+            }
+        }
+
+        // 체크박스 선택 시 합계 업데이트
+        $('.refund-item').on('change', function() {
+            let total = 0;
+            $('.refund-item:checked').each(function() {
+                total += parseInt($(this).data('price')) || 0;
+            });
+            $('#customRefundAmount').val(total);
+        });
+
+        $('#completeRefund').on('click', function() {
+            if ($(this).hasClass('btn-disabled')) {
+                $('#message').removeClass('success-message').addClass('error-message')
+                    .text('계좌 정보가 등록되어 있지 않아 환불 처리가 불가능합니다.').show();
+                return;
+            }
+            processRefund(3); // 환불 완료 (status = 3)
+        });
+
+        $('#rejectRefund').on('click', function() {
+            processRefund(4); // 환불 거절 (status = 4)
+        });
+
+        function processRefund(status) {
+            const customAmount = $('#customRefundAmount').val();
+            const formData = new FormData();
+            formData.append('status', status);
+
+            // 체크된 항목 수집
+            let hasSelectedItems = false;
+            $('input[name^="item_"]:checked').each(function() {
+                formData.append($(this).attr('name'), $(this).val());
+                hasSelectedItems = true;
+            });
+
+            if (!hasSelectedItems) {
+                $('#message').removeClass('success-message').addClass('error-message')
+                    .text('선택된 항목이 없습니다.').show();
+                return;
+            }
+
+            if (customAmount && customAmount > 0) {
+                formData.append('customRefundAmount', customAmount);
+            } else {
+                $('#message').removeClass('success-message').addClass('error-message')
+                    .text('환불 금액이 0원입니다.').show();
+                return;
+            }
+
+            $.ajax({
+                url: '/admin/products/refund/api/' + refundId + '/process',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log('Response:', response);
+                    if (response.success) {
+                        $('#message').removeClass('error-message').addClass('success-message')
+                            .text(response.message || '환불 처리 성공').show();
+                        setTimeout(() => window.location.reload(), 2000);
+                    } else {
+                        $('#message').removeClass('success-message').addClass('error-message')
+                            .text(response.message || '환불 처리 실패').show();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log('AJAX Error:', xhr, status, error);
+                    const message = xhr.responseJSON?.message || '서버 오류 발생';
+                    $('#message').removeClass('success-message').addClass('error-message')
+                        .text('환불 처리 중 오류 발생: ' + message).show();
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      xmlns:sec="http://www.springframework.org/schema/security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fitzCode</title>
+    <style>
+        body {
+            font-family: 'Apple SD Gothic Neo', sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-container {
+            background-color: #ffffff;
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+
+        td {
+            color: #333;
+        }
+
+        .product-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 5px;
+        }
+
+        .total-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e63946;
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <h1>Order Confirmation</h1>
+
+    <p>Dear Customer,</p>
+    <p>Thank you for your order! Here are the details of your purchase:</p>
+
+    <p><strong>Order ID:</strong> <span th:text="${orderDTO.orderId}"></span></p>
+    <p><strong>Order Date:</strong> <span th:text="${orderDTO.createdAt}"></span></p>
+    <p><strong>Total Price:</strong> <span th:text="${orderDTO.totalPrice}"></span></p>
+
+    <h2>Order Items</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Image</th>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="detail : ${orderDetailList}">
+            <td><img th:src="${detail['imageUrl']}" alt="Product Image" style="width: 100px; height: 100px;" class="product-img"></td>
+            <td th:text="${detail['productName']}"></td>
+            <td th:text="${detail['quantity']}"></td>
+            <td th:text="${detail['price']}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <p class="total-price">Total Price: <span th:text="${orderDTO.totalPrice}"></span> KRW</p>
+
+    <p>We hope you enjoy your purchase!</p>
+
+    <p>Best regards,</p>
+    <p>fitzCode</p>
+
+    <div class="footer">
+        <p>This is an automated email. Please do not reply.</p>
+        <p>© 2025 fitzCode. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

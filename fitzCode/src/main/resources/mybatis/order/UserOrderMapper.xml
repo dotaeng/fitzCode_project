@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.fitzcode.order.mapper.UserOrderMapper">
+
+
+    <select id="getUserAddressByUserId" parameterType="int" resultType="AddressDTO">
+        SELECT address_id, address_line1, address_line2, postal_code, is_default FROM
+        ADDRESS where user_id = #{userId}
+        ORDER BY updated_at DESC
+    </select>
+
+    <select id="getUserAddressByAddressId" parameterType="int" resultType="AddressDTO">
+        SELECT address_id, address_line1, address_line2, postal_code, is_default FROM
+        ADDRESS where address_id = #{addressId}
+    </select>
+
+    <select id="checkIfAddressExistsForUser" resultType="boolean">
+        SELECT EXISTS (
+        SELECT 1
+        FROM ADDRESS
+        WHERE user_id = #{userId}
+        AND address_line1 = #{addressLine1}
+        AND postal_code = #{postalCode}
+        )
+    </select>
+
+    <insert id="addNonDefaultAddressForUser">
+        INSERT INTO ADDRESS (user_id, address_line1, postal_code, is_default, created_at)
+        VALUES (#{userId}, #{addressDTO.addressLine1}, #{addressDTO.postalCode}, 0, NOW())
+    </insert>
+
+    <select id="getAddressIdUsingAddressLine1AndPostalCode">
+        SELECT address_id from ADDRESS
+        WHERE address_line1 = #{addressLine1} and postal_code=#{postalCode} and user_id=#{userId}
+    </select>
+
+    <insert id="insertNewOrder" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO ORDERS (user_id, address_id, total_price, order_status, created_at)
+        VALUES (#{userId}, #{addressId}, #{totalPrice}, #{orderStatus}, NOW())
+    </insert>
+
+    <insert id="addPayment">
+        INSERT INTO PAYMENT (order_id, payment_method, payment_status, amount, payment_date, transaction_id)
+        VALUES (#{paymentDTO.orderId}, #{paymentDTO.paymentMethod}, #{paymentDTO.paymentStatus}, #{paymentDTO.amount}, NOW(), #{paymentDTO.transactionId})
+    </insert>
+
+    <select id="getOrderByOrderId">
+        select * from ORDERS where order_id = #{orderId}
+    </select>
+
+    <!-- 사용자가 특정 제품을 구매했는지 확인 -->
+    <select id="countOrdersByUserAndProduct" resultType="int">
+        SELECT COUNT(*)
+        FROM ORDERS o
+        JOIN ORDER_DETAIL od ON o.order_id = od.order_id
+        WHERE o.user_id = #{userId}
+        AND od.product_id = #{productId}
+        AND o.order_status != 'CANCELLED'
+    </select>
+
+
+
+</mapper>

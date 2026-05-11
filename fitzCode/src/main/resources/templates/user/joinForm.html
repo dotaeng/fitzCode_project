@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fitzCode</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" th:href="@{/css/user/joinForm.css}"/>
+</head>
+<body>
+<div class="wrapper">
+    <div th:replace="~{fragments/header}"></div>
+
+    <br>
+    <div class="signup-container">
+        <h2>회원가입</h2>
+        <br><br>
+        <form th:action="@{/joinForm}" method="post" id="signupForm" onsubmit="return validateForm()" th:object="${dto}">
+            <div class="form-group">
+                <label for="email">이메일 (ID)</label>
+                <input type="email" id="email" name="email" th:field="*{email}" required placeholder="이메일 입력">   
+                <button type="button" onclick="checkEmail()" class="btn-email">중복 확인</button>
+                <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-message"></span>
+                <span id="emailMessage" class="message"></span>
+            </div>
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" name="password" required placeholder="비밀번호 입력 (8~16자)">
+                <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-message"></span>
+                <span id="passwordLengthError" class="message"></span>
+            </div>
+            <div class="form-group">
+                <label for="password_confirm">비밀번호 확인</label>
+                <input type="password" id="password_confirm" name="password_confirm" required placeholder="비밀번호 재입력">
+                <span id="passwordError" class="message"></span>
+            </div>
+            <div class="form-group">
+                <label for="userName">이름</label>
+                <input type="text" id="userName" name="userName" required placeholder="이름을 입력해주세요">
+            </div>
+            <div class="form-group">
+                <label for="nickname">닉네임</label>
+                <input type="text" id="nickname" name="nickname" required>   
+                <button type="button" onclick="checkNickname()" class="btn-nickname">중복 확인</button>
+                <span id="nicknameMessage" class="message"></span>
+            </div>
+            <div class="form-group">
+                <label for="phoneNumber">전화번호</label>
+                <input type="text" id="phoneNumber" name="phoneNumber" required placeholder="010-0000-0000" value="010-" maxlength="13">
+                <span id="phoneNumberError" class="message"></span>
+            </div>
+            <div class="form-group">
+                <label for="birthDate">생년월일</label>
+                <span th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}" class="error-message"></span>
+                <div class="birthdate-inputs" id="birthDate">
+                    <input type="text" name="birthDate" required placeholder="생년월일 입력 (19980204)" maxlength="8">
+                </div>
+                <span id="birthDateError" class="message"></span>
+            </div>
+            <br>
+            <!-- 약관 동의 섹션 -->
+            <div class="terms-container">
+                <label class="agree-all">
+                    <input type="checkbox" id="agree-all">
+                    이용약관 및 개인정보수집 및 이용, 쇼핑정보 수신(선택)에 모두 동의합니다.
+                </label>
+
+                <div class="terms-box">
+                    <p><strong>[필수] 이용약관 동의</strong></p>
+                    <p>본 약관은 쇼핑몰 이용과 관련하여 회사와 회원 간의 권리, 의무 및 책임사항을 규정합니다.</p>
+                    <p>회사는 약관을 변경할 수 있으며, 변경 시 사전 고지 후 시행됩니다。</p>
+                    <label>
+                        <input type="checkbox" class="agree-check" data-required="true">
+                        이용약관에 동의하십니까?
+                    </label>
+                </div>
+
+                <div class="terms-box">
+                    <p><strong>[필수] 개인정보 수집 및 이용 동의</strong></p>
+                    <p>회사는 회원의 원활한 서비스 이용을 위해 최소한의 개인정보를 수집하며, 목적 달성 후 파기합니다。</p>
+                    <p>수집 항목: 성명, 이메일, 전화번호, 주소 등</p>
+                    <label>
+                        <input type="checkbox" class="agree-check" data-required="true">
+                        개인정보 수집 및 이용에 동의하십니까?
+                    </label>
+                </div>
+
+                <div class="terms-box">
+                    <p><strong>[선택] 쇼핑정보 수신 동의</strong></p>
+                    <p>할인쿠폰, 이벤트, 신상품 소식 등 다양한 혜택 정보를 SMS 또는 이메일로 받아보실 수 있습니다。</p>
+                    <p>단, 주문/거래 정보 및 주요 정책 관련 내용은 수신 동의 여부와 관계없이 발송됩니다。</p>
+                    <label>
+                        <input type="checkbox" class="agree-check">
+                        쇼핑정보 수신에 동의하십니까?
+                    </label>
+                </div>
+            </div>
+            <button type="submit" id="signup-btn" class="signup-btn" onclick="save()" disabled>회원가입</button>
+        </form>
+    </div>
+    <br>
+
+    <div th:replace="~{fragments/footer}"></div>
+</div>
+</body>
+<script th:if="${emailCheckError}">
+    alert("[[${emailCheckError}]]");
+</script>
+<script th:if="${nickNameCheckError}">
+    alert("[[${nickNameCheckError}]]");
+</script>
+<script th:if="${phoneNumberCheckError}">
+    alert("[[${phoneNumberCheckError}]]");
+</script>
+<script th:src="@{/js/user/joinForm.js}"></script>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</html>

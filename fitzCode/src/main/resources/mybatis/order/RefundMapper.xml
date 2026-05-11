@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.fitzcode.order.mapper.RefundMapper">
+    <insert id="requestRefund">
+        INSERT INTO REFUND (order_id, refund_amount, refund_reason, refund_method, payment_id, processed_at, order_detail_id)
+        SELECT od.order_id, od.price, 'refund request', 1, p.payment_id, NOW(), #{orderDetailId}
+        FROM ORDER_DETAIL od
+        JOIN PAYMENT p ON od.order_id = p.order_id
+        WHERE od.order_detail_id = #{orderDetailId}
+    </insert>
+</mapper>

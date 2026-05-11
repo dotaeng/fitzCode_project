@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            font-family: 'Apple SD Gothic Neo', sans-serif;
+        }
+
+        .adminSidebarWrap {
+            position: relative;
+            width: 250px;
+            height: 100vh;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100vh;
+            background-color: #f8f9fa;
+            padding: 20px;
+            color: #333;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-logo {
+            display: block;
+            width: 180px;
+            height: auto;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            padding-left: 30px;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            color: #222;
+            font-weight: bold;
+            padding-left: 30px;
+        }
+
+        .sidebar-section h3 {
+            font-size: 1.1em;
+            margin: 15px 0 10px;
+            color: #555;
+            font-weight: 500;
+            padding-left: 30px;
+            transition: color 0.3s ease;
+        }
+
+        .sidebar-section h3:hover {
+            color: #666;
+        }
+
+        .sidebar-section-dashboard h3 a {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin: 15px 0 34px;
+            color: black;
+            text-decoration: none;
+            display: block;
+            transition: color 0.3s ease;
+        }
+
+        .sidebar-section-dashboard h3 a:hover {
+            color: #666;
+        }
+
+        .submenu a {
+            display: block;
+            padding: 8px 0 8px 42px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: color 0.3s ease;
+        }
+
+        .submenu a:hover {
+            color: #666;
+        }
+
+        .sidebar-section,
+        .sidebar-section-dashboard {
+            margin-bottom: 15px;
+        }
+
+        .submenu a.active {
+            font-weight: bold;
+            color: #2f2f32;
+        }
+
+        .main-content {
+            margin-left: 100px;
+            margin-top: 50px;
+            width: calc(100% - 100px - 100px);
+            padding: 20px;
+            margin-right: 100px;
+            box-sizing: border-box;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 24px;
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: black;
+        }
+
+        .product-list {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .product-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .product-item {
+            padding: 10px;
+            text-align: center;
+            width: 18%;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .product-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border: none;
+        }
+
+        .product-item span {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .product-item .order-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 2px 5px;
+            font-size: 12px;
+            border-radius: 3px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            width: 50%;
+            max-width: 600px;
+            border-radius: 5px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: auto;
+            min-height: 300px;
+            box-sizing: border-box;
+            margin-top: 55px;
+            margin-left: 480px;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 2001;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #searchInput, #searchButton {
+            height: 40px;
+            padding-left: 10px;
+            padding-right: 10px;
+            border-radius: 8px;
+        }
+
+        #searchInput {
+            width: 80%;
+        }
+
+        #searchButton {
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 2px;
+        }
+
+        #searchButton:hover {
+            background-color: #555;
+        }
+
+        #searchResults {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            max-height: calc(100% - 100px);
+        }
+
+        .product-search-item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .product-search-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .product-search-item.selected {
+            background-color: #e9ecef;
+        }
+
+        .product-search-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+
+        #saveModalButton {
+            align-self: flex-end;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 1000px) {
+            .main-content {
+                margin-left: 0;
+                margin-right: 0;
+                width: 100%;
+            }
+            .modal {
+                left: 50%;
+                width: 100%;
+                transform: translate(-50%, -50%);
+            }
+            .modal-content {
+                width: 80%;
+                margin-top: 55px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/managerSidebar}"></div>
+
+<div class="main-content">
+    <h1>추천상품 관리</h1>
+    <div class="product-list">
+        <div class="product-row" id="row1"></div>
+        <div class="product-row" id="row2"></div>
+    </div>
+    <button onclick="savePickProducts()" style="margin-left: auto;">저장</button>
+</div>
+
+<!-- 모달 -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">×</span>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="상품 검색...">
+            <button id="searchButton" onclick="searchProducts()">검색</button>
+        </div>
+        <div id="searchResults"></div>
+        <button id="saveModalButton" onclick="saveModalSelection()">저장</button>
+    </div>
+</div>
+
+<script>
+    let pickProducts = [];
+    let selectedProductIndex = null; // 수정할 상품 인덱스
+    let currentSelectedProduct = null; // 현재 선택된 상품
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('productModal');
+        if (modal.style.display !== 'none') {
+            modal.style.display = 'none';
+        }
+
+        // 검색 입력에 Enter
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                searchProducts();
+            }
+        });
+
+        fetch('/admin/pick-products')
+            .then(response => response.json())
+            .then(data => {
+                pickProducts = data.map((item, index) => ({
+                    productId: item.productId || '',
+                    productName: item.product?.productName || '',
+                    price: item.product?.price || 0,
+                    imageUrl: item.product?.imageUrl || '/img/testProduct.png',
+                    displayOrder: index + 1
+                }));
+                console.log('Initial products loaded:', pickProducts);
+                renderProducts();
+            })
+            .catch(error => console.error('초기 데이터 로드 실패:', error));
+    });
+
+    // 상품 랜더링
+    function renderProducts() {
+        const row1 = document.getElementById('row1');
+        const row2 = document.getElementById('row2');
+        row1.innerHTML = '';
+        row2.innerHTML = '';
+
+        for (let i = 0; i < 10; i++) {
+            const product = pickProducts[i] || { productId: '', productName: '', price: 0, imageUrl: '/img/testProduct.png', displayOrder: i + 1 };
+            const row = i < 5 ? row1 : row2;
+            const productItem = document.createElement('div');
+            productItem.className = 'product-item';
+            productItem.setAttribute('data-index', i);
+            productItem.innerHTML = `
+                <span class="order-label">${i + 1}</span>
+                <img src="${product.imageUrl}" alt="${product.productName}" onerror="this.src='/img/testProduct.png'">
+                <span>${product.productName}</span>
+                <span>${product.price}원</span>
+            `;
+            productItem.addEventListener('click', () => openModal(i));
+            row.appendChild(productItem);
+        }
+        console.log('Products rendered:', pickProducts);
+    }
+
+    // 저장
+    function savePickProducts() {
+        fetch('/admin/pick-products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pickProducts)
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('저장 완료');
+                    location.reload();
+                } else {
+                    throw new Error('저장 실패');
+                }
+            })
+            .catch(error => {
+                console.error('저장 실패:', error);
+                alert('저장 중 오류가 발생했습니다.');
+            });
+    }
+
+    // 모달 열기
+    function openModal(index) {
+        console.log('Opening modal for index:', index);
+        selectedProductIndex = index;
+        document.getElementById('productModal').style.display = 'block';
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchResults').innerHTML = '';
+        currentSelectedProduct = null;
+    }
+
+    // 모달 닫기
+    function closeModal() {
+        document.getElementById('productModal').style.display = 'none';
+        document.getElementById('searchResults').innerHTML = '';
+        const previouslySelected = document.querySelector('.product-search-item.selected');
+        if (previouslySelected) {
+            previouslySelected.classList.remove('selected');
+        }
+        currentSelectedProduct = null;
+        selectedProductIndex = null;
+    }
+
+    // 상품 검색
+    function searchProducts() {
+        const query = document.getElementById('searchInput').value.trim();
+        if (query.length < 2) {
+            document.getElementById('searchResults').innerHTML = '검색어는 2자 이상 입력해주세요.';
+            return;
+        }
+
+        fetch(`/admin/products/search?query=${encodeURIComponent(query)}&page=1&pageSize=10`)
+            .then(response => {
+                if (!response.ok) throw new Error('네트워크 응답 오류');
+                return response.json();
+            })
+            .then(data => {
+                const results = document.getElementById('searchResults');
+                results.innerHTML = '';
+                if (data && data.length > 0) {
+                    data.forEach(product => {
+                        const productItem = document.createElement('div');
+                        productItem.className = 'product-search-item';
+                        productItem.setAttribute('data-product-id', product.productId);
+                        productItem.innerHTML = `
+                            <img src="${product.imageUrl || '/img/testProduct.png'}" alt="${product.productName}" onerror="this.src='/img/testProduct.png'">
+                            <span>${product.productName} - ${product.price || 0}원</span>
+                        `;
+                        productItem.addEventListener('click', () => selectProduct(product.productId, product.productName, product.price, product.imageUrl, productItem));
+                        results.appendChild(productItem);
+                    });
+                    const modalContent = document.querySelector('.modal-content');
+                    modalContent.style.height = 'auto';
+                } else {
+                    results.innerHTML = '검색 결과가 없습니다.';
+                }
+            })
+            .catch(error => {
+                console.error('검색 실패:', error);
+                document.getElementById('searchResults').innerHTML = '검색 중 오류가 발생했습니다.';
+            });
+    }
+
+    // 상품 선택
+    function selectProduct(productId, productName, price, imageUrl, element) {
+        // 이전에 선택된 상품의 배경색 제거
+        const previouslySelected = document.querySelector('.product-search-item.selected');
+        if (previouslySelected) {
+            previouslySelected.classList.remove('selected');
+        }
+
+        // 현재 선택된 상품에 배경색 추가
+        element.classList.add('selected');
+
+        // 선택된 상품 정보 저장
+        currentSelectedProduct = { productId, productName, price, imageUrl };
+    }
+
+    // 모달 내 저장
+    function saveModalSelection() {
+        if (selectedProductIndex !== null && currentSelectedProduct) {
+            pickProducts[selectedProductIndex] = {
+                productId: currentSelectedProduct.productId,
+                productName: currentSelectedProduct.productName,
+                price: currentSelectedProduct.price,
+                imageUrl: currentSelectedProduct.imageUrl,
+                displayOrder: selectedProductIndex + 1
+            };
+            renderProducts();
+            closeModal();
+        } else {
+            alert('상품을 선택해주세요.');
+        }
+    }
+</script>
+</body>
+</html>

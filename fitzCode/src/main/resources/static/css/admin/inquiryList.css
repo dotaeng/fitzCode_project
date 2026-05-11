@@ -1,0 +1,132 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+    margin-left: 100px;
+}
+
+.adminSidebarWrap {
+    width: 280px !important;
+}
+
+.content {
+    flex-grow: 1;
+    padding: 10px 20px;
+    max-width: calc(100vw - 100px - 40px);
+    margin: 80px 100px 0 0;
+}
+
+a {
+    text-decoration: none;
+    color: #000;
+}
+
+a:hover {
+    color: #000;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+th {
+    background-color: #2f2f32;
+    color: white;
+}
+
+.status-pending {
+    color: red;
+    font-weight: bold;
+}
+
+.status-answered {
+    color: green;
+}
+
+.status-closed {
+    color: gray;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.pagination a, .pagination span {
+    padding: 8px 12px;
+    margin: 0 5px;
+    text-decoration: none;
+    display: inline-block;
+    color: #333;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.pagination a.active {
+    background-color: #f1f1f1;
+    color: #333;
+    border-color: #f1f1f1;
+}
+
+.pagination a:hover {
+    background-color: #f1f1f1;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        margin-left: 0;
+    }
+    .sidebar {
+        position: static;
+        width: 100%;
+    }
+    .adminSidebarWrap {
+        width: 100% !important;
+    }
+    .content {
+        max-width: 100%;
+        margin: 0;
+        padding: 10px;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+        text-align: center;
+        min-height: 40px;
+    }
+    .pagination a, .pagination span {
+        margin: 5px;
+    }
+
+    .filters select,
+    .filters button {
+        padding: 8px;
+        font-size: 14px;
+        width: 150px !important;
+    }
+}

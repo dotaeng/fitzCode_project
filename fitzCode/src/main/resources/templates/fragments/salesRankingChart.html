@@ -1,0 +1,119 @@
+    <!DOCTYPE html>
+    <html lang="ko" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+    <div th:fragment="salesRankingChart">
+        <div class="sales-ranking">
+            <h3>판매 상품 순위 (최근 14일)</h3>
+            <table id="ranking-table">
+                <thead>
+                <tr>
+                    <th>순위</th>
+                    <th>상품</th>
+                    <th>총 매출</th>
+                    <th>판매량</th>
+                </tr>
+                </thead>
+                <tbody id="ranking-body">
+                <!-- Thymeleaf로 초기 데이터 렌더링 시 5개로 제한 -->
+                <tr th:each="item, iter : ${salesRanking}" th:if="${iter.count <= 5}">
+                    <td class="rank" th:text="${iter.count}"></td>
+                    <td class="product">
+                        <img th:src="${item.imageUrl}" alt="Product Image" th:if="${item.imageUrl}">
+                        <span th:text="${#strings.length(item.productName) > 18} ? ${#strings.substring(item.productName, 0, 18) + '...'} : ${item.productName}"></span>
+                    </td>
+                    <td class="sales" th:text="'₩' + ${#numbers.formatInteger(item.totalSales, 3, 'COMMA')}"></td>
+                    <td class="quantity" th:text="${item.quantitySold}"></td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="pagination" id="pagination">
+                <button id="prevPage" onclick="changePage(-1)" disabled><</button>
+                <button id="nextPage" onclick="changePage(1)">></button>
+            </div>
+        </div>
+
+        <script th:inline="javascript">
+            let currentPage = 1;
+            let totalCount = /*[[${totalCount}]]*/; // 초기 총 항목 수
+            let totalPages = Math.min(Math.ceil(totalCount / 5), 2); // 최대 2페이지로 제한
+
+            function updatePagination() {
+                const prevButton = document.getElementById('prevPage');
+                const nextButton = document.getElementById('nextPage');
+
+                // 총 페이지 수 동적 갱신
+                fetch('/admin/sales/total-count', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(total => {
+                        totalCount = total;
+                        totalPages = Math.min(Math.ceil(totalCount / 5), 2); // 최대 2페이지
+
+                        prevButton.disabled = currentPage === 1;
+                        nextButton.disabled = currentPage === totalPages || totalCount <= 5;
+
+                        if (prevButton.disabled) {
+                            prevButton.classList.remove('active');
+                        } else {
+                            prevButton.classList.add('active');
+                        }
+
+                        if (nextButton.disabled) {
+                            nextButton.classList.remove('active');
+                        } else {
+                            nextButton.classList.add('active');
+                        }
+                    })
+                    .catch(error => console.error('Error fetching total count:', error));
+            }
+
+            function changePage(direction) {
+                const newPage = currentPage + direction;
+                if (newPage < 1 || newPage > totalPages) return; // 페이지 범위 제한
+
+                currentPage = newPage;
+                updatePagination();
+
+                fetch(`/admin/sales/ranking?page=${currentPage}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('ranking-body');
+                        tbody.innerHTML = '';
+
+                        data.forEach((item, index) => {
+                            const rank = (currentPage - 1) * 5 + index + 1;
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                            <td class="rank">${rank}</td>
+                            <td class="product">
+                                ${item.imageUrl ? `<img src="${item.imageUrl}" alt="Product Image">` : ''}
+                                <span>${item.productName.length > 18 ? item.productName.substring(0, 18) + '...' : item.productName}</span>
+                            </td>
+                            <td class="sales">₩${item.totalSales.toLocaleString()}</td>
+                            <td class="quantity">${item.quantitySold}</td>
+                        `;
+                            tbody.appendChild(tr);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching ranking data:', error));
+            }
+
+            // 초기 로드 시 페이징 상태 설정
+            document.addEventListener('DOMContentLoaded', () => {
+                updatePagination();
+            });
+        </script>
+    </body>
+    </html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/fragments/mypageNavi.css}"/>
+</head>
+<body>
+<div class="myPageNavi">
+    <p class="myPageNaviTitle">
+        <a th:href="@{/mypage/myProfile}" style="text-decoration: none; color: inherit;">마이페이지</a>
+    </p>
+
+    <!-- 내 프로필 -->
+    <p class="myPageNaviSubtitle" style="font-weight: bold;">
+        <a th:href="@{/mypage/myProfile}">내 프로필</a>
+    </p>
+
+    <!-- 주문 상세보기 -->
+    <p class="myPageNaviMenu">
+        <a th:href="@{/orders}">주문내역</a>
+    </p>
+
+    <!-- 주소록 -->
+    <p class="myPageNaviMenu">
+        <a th:href="@{/mypage/address}" >주소록</a>
+    </p>
+
+    <!-- 계좌관리 -->
+    <p class="myPageNaviMenu">
+        <a th:href="@{/mypage/account}">계좌관리</a>
+    </p>
+
+    <!-- 회원정보 변경 -->
+    <p class="myPageNaviMenu">
+        <a th:href="@{/mypage/verifyUser}">회원정보 변경</a>
+    </p>
+
+    <!-- 쿠폰 -->
+    <p class="myPageNaviMenu">
+        <a th:href="@{/mypage/mycoupon}">쿠폰</a>
+    </p>
+
+    <!-- 1 : 1 문의 -->
+    <p class="myPageNaviMenu">
+        <a th:href="@{/inquiry/inquiryList}">1:1 문의</a>
+    </p>
+
+</div>
+</body>
+</html>

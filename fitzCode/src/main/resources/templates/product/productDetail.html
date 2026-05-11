@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.springframework.org/schema/security">
+<head>
+    <title>fitzCode</title>
+    <th:block th:replace="~{fragments/header :: header-head}"></th:block>
+    <th:block th:replace="~{fragments/footer :: footer-head}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/product/productDetail.css}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container">
+
+    <!-- Sticky Bar 폼임 -->
+    <div class="sticky-container" id="stickyBar">
+        <div class="product_area">
+            <!-- 상품 이미지 -->
+            <div class="thumbnail">
+                <img th:src="${product.imageUrl}" th:alt="${product.productName}">
+            </div>
+            <!-- 상품 텍스트 정보 -->
+            <div class="product_list_info_summary">
+                <p class="product_title" th:text="${product.productName}">name</p>
+                <p class="product_subtitle" th:text="${product.description}">description</p>
+                <p class="product_model" th:text="${product.productId}">number</p>
+            </div>
+        </div>
+        <!-- 버튼 영역 -->
+        <div class="btn_area">
+            <a href="#" class="btn btn_wish2 sticky-cart-button">장바구니</a>
+            <button class="btn_action buy_button sticky-buy-button">
+                <strong>구매</strong>
+                <div class="price" th:text="${product.formattedDiscountedPrice}"></div>
+            </button>
+        </div>
+    </div>
+
+    <div class="product-detail-container">
+        <!-- 상품 이미지 -->
+        <div class="product-image-section">
+            <div class="product-image">
+                <img th:src="${product.imageUrl}" th:alt="${product.productName}">
+
+                <th:block th:each="image : ${productImageList}">
+                    <img th:src="${image.imageUrl}" th:alt="${product.productName}">
+                </th:block>
+            </div>
+            <button class="next-btn">></button>
+            <button class="prev-btn"><</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 오른쪽: 상품 정보 -->
+        <div class="product-info-section">
+            <!-- 상품명 및 상세설명 -->
+            <div class="product-name" th:text="${product.productName}">Product Name</div>
+            <div class="product-description" th:text="${product.description}">This is a brief description of the product.</div>
+            <div class="row">
+                <th:block th:if="${product.formattedDiscountPercentage != '0'}">
+                    <div class="product-salePercent" th:text="${product.formattedDiscountPercentage + '%'}"></div>
+                    <div class="price-container">
+                        <div class="product-originalPrice" th:text="${product.formattedPrice + ' 원'}"></div>
+                        <div class="product-price" th:text="${product.formattedDiscountedPrice + ' 원'}"></div>
+                    </div>
+                </th:block>
+                <th:block th:if="${product.formattedDiscountPercentage == '0'}">
+                    <div class="price-container">
+                        <div class="product-price" th:text="${product.formattedDiscountedPrice + ' 원'}"></div>
+                    </div>
+                </th:block>
+
+            </div>
+
+            <!-- 구분선 -->
+            <hr class="section-divider">
+
+            <!-- 상품 세부 정보 -->
+            <dl class="product-details">
+                <div class="detail">
+                    <div class="text">출시일</div>
+                    <span th:text="${product.formattedCreatedAt}"></span>
+                </div>
+                <div class="detail">
+                    <div class="text">발매가</div>
+                    <span th:text="${product.formattedPrice}"></span>
+                </div>
+                <div class="detail">
+                    <div class="text">재고</div>
+                    <span th:text="${product.stock}"></span>
+                </div>
+            </dl>
+
+            <!-- size selector -->
+            <div class="choose-size">
+                <div class="size-option-container">
+                    <select id="size-options">
+                        <option value="">사이즈 선택</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 구매/판매 버튼 -->
+            <div class="button-group">
+                <div class="cart-button">
+                    <div class="buy-text">장바구니</div>
+                </div>
+                <div class="buy-button">
+                    <div class="buy-text">구매</div>
+                </div>
+            </div>
+
+            <!-- 사이즈 정보 섹션 -->
+            <div class="size-info-section">
+                <h2 class="size-info-title">사이즈 정보</h2>
+                <div class="size-tabs">
+                    <button class="size-tab-button active" data-tab="clothing">의류</button>
+                    <button class="size-tab-button" data-tab="shoes">신발</button>
+                </div>
+                <div class="size-table-container">
+                    <div class="size-tab-content active" id="size-clothing">
+                        <!-- 의류 사이즈 표는 AJAX -->
+                    </div>
+                    <div class="size-tab-content" id="size-shoes">
+                        <!-- 신발 사이즈 표는 AJAX -->
+                    </div>
+                </div>
+                <p class="size-info-note">- 인터내셔널 사이즈 표입니다. 참고하시기 바랍니다.</p>
+            </div>
+
+            <!-- 상품후기 섹션 -->
+            <div class="review-section">
+                <h2 class="review-title">상품후기</h2>
+                <div class="review-tabs">
+                    <button class="tab-button active" data-tab="view">상품후기 보기</button>
+                    <button class="tab-button" data-tab="write">상품후기 쓰기</button>
+                    <button class="tab-button" data-tab="my-reviews">내가 쓴 리뷰 보기</button>
+                    <div class="review-filter">
+                        <select id="review-filter">
+                            <option value="all">모두 보기</option>
+                            <option value="photo">사진 후기 보기</option>
+                            <option value="high-rating">높은 평점순</option>
+                            <option value="low-rating">낮은 평점순</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="review-content">
+<!--                    <div class="chart-box">-->
+<!--                        <div th:replace="~{product/productReviewDoughnut :: reviewDoughnut(reviewCounts=${reviewCounts})}"></div>-->
+<!--                        <div class="rating-summary">-->
+<!--                            <div class="averageRating" th:text="${'평균: ' + averageRating + '점'}" th:if="${averageRating != 0}"></div>-->
+<!--                            <div class="numberOfReviews" th:text="${totalReviews + '개'}"></div>-->
+<!--                        </div>-->
+                       
+                    </div>
+                    <!-- 상품후기 보기 탭 -->
+                    <div id="review-view" class="tab-content active">
+                        <div id="review-loading" style="display: none;">로딩 중...</div>
+                        <div id="review-list">
+                            <!-- 상품후기는 AJAX로 -->
+                        </div>
+                    </div>
+                    <!-- 상품후기 쓰기 탭 -->
+                    <div id="review-write" class="tab-content">
+                        <form id="review-form">
+                            <div class="form-group rating-group">
+                                <label for="review-rating">평점</label>
+                                <div class="rating" id="review-rating">
+                                    <input type="radio" id="star5" name="rating" value="5" checked />
+                                    <label for="star5" title="5 stars"></label>
+                                    <input type="radio" id="star4" name="rating" value="4" />
+                                    <label for="star4" title="4 stars"></label>
+                                    <input type="radio" id="star3" name="rating" value="3" />
+                                    <label for="star3" title="3 stars"></label>
+                                    <input type="radio" id="star2" name="rating" value="2" />
+                                    <label for="star2" title="2 stars"></label>
+                                    <input type="radio" id="star1" name="rating" value="1" />
+                                    <label for="star1" title="1 star"></label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="review-content">상품후기 내용</label>
+                                <textarea id="review-content" name="content" rows="5" placeholder="상품후기를 작성해주세요." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="review-image">사진 첨부</label>
+                                <input type="file" id="review-image" name="image" accept="image/*">
+                                <div id="image-preview" class="image-preview"></div>
+                            </div>
+                            <button type="submit">상품후기 등록</button>
+                        </form>
+                    </div>
+                    <!-- 내가 쓴 리뷰 보기 탭 -->
+                    <div id="review-my-reviews" class="tab-content">
+                        <div id="my-review-loading" style="display: none;">로딩 중...</div>
+                        <div id="my-review-list">
+                            <!-- 사용자가 작성한 상품후기는 AJAX -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- payment Structure -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <h2>주문</h2>
+            <div class="modal-product-info">
+                <div class="modal-product-image">
+                    <img th:src="${product.imageUrl}" th:alt="${product.productName}">
+                </div>
+                <div class="modal-product-details">
+                    <div class="modal-product-name" th:text="${product.productName}">Product Name</div>
+                    <span class="modal-price" th:text="${product.formattedDiscountedPrice + '원'}">250,000원</span>
+                </div>
+            </div>
+            <p class="modal-username" sec:authorize="isAuthenticated()">
+                사용자 ID: <span th:text="${#authentication.principal.username}"></span>
+            </p>
+
+            <!-- 배송지 선택 -->
+            <div class="address-section">
+                <h3>배송지</h3>
+                <div class="address-selection">
+                    <select id="userAddress">
+                        <option value="">배송지 선택</option>
+                    </select>
+                    <button id="changeAddressBtn">변경</button>
+                </div>
+            </div>
+
+            <div class="coupon-section">
+                <h3>쿠폰</h3>
+                <div class="coupon-selection">
+                    <select id="userCoupon">
+                        <option value="">쿠폰 선택</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="final-price-section">
+                <p>최종 결제 가격: <span id="finalPrice" th:text="${product.formattedDiscountedPrice}"></span></p>
+            </div>
+
+            <button id="paymentBtn">결제하기</button>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+
+<!-- check if user exists -->
+<script th:if="${#authentication.principal == 'anonymousUser'}">
+    var isAuthenticated = false;
+</script>
+<script th:unless="${#authentication.principal == 'anonymousUser'}">
+    var isAuthenticated = true;
+</script>
+
+<script>
+    const productId = [[${product?.productId ?: 0}]];
+    const retailPrice = [[${product?.discountedPrice ?: 0}]];
+    let finalPrice = [[${product?.discountedPrice ?: 0}]];
+    const productCategoryId = [[${product?.categoryId ?: 0}]];
+    const parentCategoryId = [[${parentCategoryId ?: 0}]];
+    console.log("final price: " + finalPrice);
+    console.log("Product ID:", productId);
+    console.log("Product Category ID:", productCategoryId);
+    console.log("Parent Category ID:", parentCategoryId);
+
+    const cartBtn = document.querySelector('.cart-button');
+    const buyBtn = document.querySelector('.buy-button');
+    const stickyCartBtn = document.querySelector('.sticky-cart-button');
+    const stickyBuyBtn = document.querySelector('.sticky-buy-button');
+
+    const reviewsPerPage = 5;
+    let currentPage = 1;
+    let totalReviews = 0;
+    let allReviews = [];
+
+    let productSizes = [];
+
+    if (!productId || productId === 0) {
+        console.error("Product ID is invalid or not provided");
+        alert("상품 정보를 불러올 수 없습니다.");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        IMP.init("imp44587248");
+        console.log("imp loaded");
+        const stickyBar = document.getElementById("stickyBar");
+        window.addEventListener("scroll", () => {
+            const scrollY = window.scrollY || window.pageYOffset;
+            if (scrollY > 400) {
+                stickyBar.style.display = "flex";
+            } else {
+                stickyBar.style.display = "none";
+            }
+        });
+        fetchAvailableSizes();
+        setupReviewTabs();
+        loadReviews();
+    });
+
+    function displayModal() {
+        console.log("display modal running...");
+        getUserAddress();
+        getUserCoupon();
+        document.getElementById("paymentModal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("paymentModal").style.display = "none";
+    }
+
+    cartBtn.addEventListener('click', () => {
+        if (isAuthenticated) {
+            checkIfSizeSelected();
+        } else {
+            window.location.href = '/login';
+        }
+    });
+
+    buyBtn.addEventListener('click', () => {
+        if (!isAuthenticated) {
+            window.location.href = '/login';
+            return;
+        }
+        checkIfSizeSelected(1);
+    });
+
+    stickyBuyBtn.addEventListener('click', () => {
+        if (!isAuthenticated) {
+            window.location.href = '/login';
+            return;
+        }
+        checkIfSizeSelected(1);
+    });
+
+    stickyBuyBtn.addEventListener('click', () => {
+        if (isAuthenticated) {
+            checkIfSizeSelected(1);
+        } else {
+            window.location.href = '/login';
+        }
+    });
+
+    function getSizeCode() {
+        const sizeSelect = document.getElementById("size-options");
+        const selectedOption = sizeSelect ? sizeSelect.selectedOptions[0] : null;
+        return selectedOption ? selectedOption.value : null;
+    }
+
+    function checkIfSizeSelected(command) {
+        const sizeSelect = document.getElementById("size-options");
+        const selectedOption = sizeSelect ? sizeSelect.selectedOptions[0] : null;
+
+        if (!selectedOption || !selectedOption.value) {
+            console.log("사이즈를 먼저 선택해주세요");
+            alert("사이즈를 먼저 선택해주세요");
+            return;
+        }
+
+        const selectedSize = selectedOption.value;
+        const selectedStock = selectedOption.dataset.stock;
+        if (selectedStock <= 0) {
+            console.log("No product of this size is available");
+            alert("해당 사이즈의 재고가 없습니다.");
+            return;
+        }
+        if (command === 1) {
+            console.log("command is one, loading modal");
+            displayModal();
+        } else {
+            addToCart(selectedSize, selectedStock);
+        }
+    }
+
+    function addToCart(sizeCode, selectedStock) {
+        console.log("Selected sizeCode:", sizeCode);
+        console.log("Stock available:", selectedStock);
+        console.log("product number:", productId);
+        let sendData = { productId: productId, sizeCode: parseInt(sizeCode) };
+        console.log(sendData);
+
+        $.ajax({
+            url: "/api/cart/addToCart",
+            method: "POST",
+            data: { productId: productId, sizeCode: sizeCode },
+            success: function (data) {
+                console.log("success", data);
+                alert("Product added to Cart");
+            },
+            error: function (xhr, status, error) {
+                if (xhr.status === 401) {
+                    console.warn("Unauthorized: Redirecting to login...");
+                    window.location.href = "/login";
+                } else {
+                    console.error("Error adding to cart:", error);
+                }
+            }
+        });
+    }
+
+    let addressId;
+    let addressLine1;
+    let postalCode;
+
+    function getUserAddress() {
+        console.log("getting user address");
+        $.ajax({
+            url: "/api/order/getUserAddress",
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+                console.log(response);
+                if (response.length > 0) {
+                    renderAddressDropdown(response);
+                } else {
+                    $("#userAddress").html("<option value=''>등록된 주소가 없습니다.</option>");
+                }
+            },
+            error: function () {
+                $("#userAddress").html("<option value=''>주소를 불러올 수 없습니다.</option>");
+            }
+        });
+    }
+
+    let couponId;
+    let minOrderAmount;
+
+    function getUserCoupon() {
+        console.log("getting user coupons");
+        $.ajax({
+            url: "/coupon/getUsersCoupons",
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+                console.log("All Coupons:", response);
+                if (response.length > 0) {
+                    const filteredCoupons = response.filter(coupon => {
+                        console.log("Checking coupon:", coupon.couponId, "with applicableCategories:", coupon.applicableCategories);
+                        if (!coupon.applicableCategories || coupon.applicableCategories === '[]') {
+                            console.log("Coupon", coupon.couponId, "has no category restriction - included");
+                            return true; // 카테고리 제한 없는 쿠폰 포함
+                        }
+                        const categories = JSON.parse(coupon.applicableCategories);
+                        const isMatch = categories.includes(String(productCategoryId)) ||
+                            (parentCategoryId !== 0 && categories.includes(String(parentCategoryId)));
+                        console.log("Coupon", coupon.couponId, "match result:", isMatch,
+                            "Categories:", categories,
+                            "Product Category ID:", productCategoryId,
+                            "Parent Category ID:", parentCategoryId);
+                        return isMatch;
+                    });
+                    console.log("Filtered Coupons:", filteredCoupons);
+                    if (filteredCoupons.length > 0) {
+                        renderCouponDropdown(filteredCoupons);
+                    } else {
+                        $("#userCoupon").html("<option value=''>이 상품에 사용 가능한 쿠폰이 없습니다.</option>");
+                    }
+                } else {
+                    $("#userCoupon").html("<option value=''>사용할 수 있는 쿠폰이 없습니다.</option>");
+                }
+            },
+            error: function () {
+                $("#userCoupon").html("<option value=''>쿠폰을 불러올 수 없습니다.</option>");
+            }
+        });
+    }
+
+    function renderAddressDropdown(addressList) {
+        let $select = $("#userAddress");
+        $select.empty();
+        $select.append($("<option>", {
+            value: "",
+            text: "배송지 선택"
+        }));
+
+        addressList.forEach((address, index) => {
+            $select.append($("<option>", {
+                value: index,
+                text: `${address.addressLine1} (우편번호: ${address.postalCode})`
+            }));
+        });
+
+        $select.off("change").on("change", function () {
+            let selectedIndex = $(this).val();
+            if (selectedIndex !== "") {
+                updateSelectedAddress(addressList[selectedIndex]);
+            }
+        });
+
+        if (addressList.length > 0) {
+            $select.val("0").trigger("change");
+        }
+    }
+
+    function renderCouponDropdown(couponList) {
+        let $select = $("#userCoupon");
+        $select.empty();
+        $select.append($("<option>", {
+            value: "",
+            text: "쿠폰 선택"
+        }));
+
+        couponList.forEach((coupon, index) => {
+            let isValid = validCoupon(coupon);
+            let couponText = coupon.description;
+            if (coupon.minimumOrderAmount !== null && coupon.minimumOrderAmount !== undefined) {
+                couponText += ` (최소금액: ${coupon.minimumOrderAmount})`;
+            }
+            $select.append($("<option>", {
+                value: index,
+                text: couponText,
+                disabled: !isValid
+            }));
+        });
+
+        $select.off("change").on("change", function () {
+            let selectedIndex = $(this).val();
+            if (selectedIndex !== "") {
+                updateSelectedCoupon(couponList[selectedIndex]);
+            } else {
+                finalPrice = retailPrice;
+                updateFinalPrice();
+            }
+        });
+
+        let firstValidCouponIndex = couponList.findIndex(validCoupon);
+        if (firstValidCouponIndex !== -1) {
+            $select.val(firstValidCouponIndex).trigger("change");
+        }
+    }
+
+    function validCoupon(coupon) {
+        return coupon.minimumOrderAmount === null || coupon.minimumOrderAmount === undefined || coupon.minimumOrderAmount <= retailPrice;
+    }
+
+    function updateSelectedAddress(address) {
+        addressId = address.addressId;
+        addressLine1 = address.addressLine1;
+        postalCode = address.postalCode;
+        console.log("Selected Address:", addressLine1, postalCode);
+    }
+
+    function updateSelectedCoupon(coupon) {
+        couponId = coupon.couponId;
+        minOrderAmount = coupon.minimumOrderAmount;
+        console.log("Selected coupon:", couponId);
+        checkValidCouponAndCalculatePrice();
+    }
+
+    function checkValidCouponAndCalculatePrice() {
+        console.log("checking coupon");
+        console.log("calculating final price with couponId: " + couponId);
+        console.log("for product with productId" + productId);
+        $.ajax({
+            url: "/coupon/getPriceWithCoupon",
+            data: { productId: productId, couponId: couponId },
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+                console.log(response);
+                finalPrice = response;
+                console.log("finalPrice is set to " + response);
+                updateFinalPrice();
+            },
+            error: function () {
+                console.error("Failed to calculate price with coupon");
+                finalPrice = retailPrice;
+                updateFinalPrice();
+            }
+        });
+    }
+
+    function updateFinalPrice() {
+        const formattedPrice = new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(finalPrice);
+        $("#finalPrice").text(formattedPrice);
+    }
+
+    function changeAddress() {
+        console.log("change address pressed");
+        new daum.Postcode({
+            oncomplete: function (data) {
+                let newAddress = {
+                    addressId: null,
+                    addressLine1: data.roadAddress,
+                    postalCode: data.zonecode
+                };
+                addNewAddressToDropdown(newAddress);
+            }
+        }).open();
+    }
+
+    function addNewAddressToDropdown(newAddress) {
+        let $select = $("#userAddress");
+        let newIndex = $select.children().length - 1;
+        $select.append($("<option>", {
+            value: newIndex,
+            text: `${newAddress.addressLine1} (우편번호: ${newAddress.postalCode})`,
+            selected: true
+        }));
+
+        updateSelectedAddress(newAddress);
+    }
+
+    function loadPortOne() {
+        console.log(finalPrice);
+        $.ajax({
+            url: "/payment/getPostOneInfo",
+            type: "POST",
+            dataType: "json",
+            data: { totalPrice: finalPrice },
+            success: function (response) {
+                requestPayment(response);
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching products:", error);
+            }
+        });
+    }
+
+    function requestPayment(paymentInfo) {
+        IMP.request_pay(
+            {
+                channelKey: paymentInfo.channelKey,
+                pay_method: paymentInfo.payMethod,
+                merchant_uid: paymentInfo.merchant_uid,
+                name: paymentInfo.name,
+                amount: paymentInfo.amount
+            },
+            async (response) => {
+                if (response.error_code != null) {
+                    return alert(`결제에 실패하였습니다. 에러 내용: ${response.error_msg}`);
+                }
+                console.log(response);
+                createOrder(response);
+            }
+        );
+    }
+
+    function createOrder(response) {
+        console.log("creating order");
+        console.log(response);
+        $.ajax({
+            url: "/api/order/createOrderFromDetailPage",
+            method: "POST",
+            data: {
+                impUid: response.imp_uid,
+                addressLine1: addressLine1,
+                postalCode: postalCode,
+                productId: productId,
+                sizeCode: getSizeCode(),
+                price: finalPrice,
+                couponId: couponId
+            },
+            dataType: "json",
+            success: function (data) {
+                console.log("success");
+                console.log(data);
+                window.location.href = `/order/${data.orderId}`;
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching products:", error);
+                isLoading = false;
+            }
+        });
+    }
+
+    function fetchAvailableSizes() {
+        console.log("Fetching available sizes...");
+        $.ajax({
+            url: "/api/product/getProductSizes",
+            method: "POST",
+            data: { productId: productId },
+            dataType: "json",
+            success: function (data) {
+                console.log("success");
+                console.log(data);
+                productSizes = data;
+                updateSizeOptions(data);
+                setupSizeTabs();
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching products:", error);
+                isLoading = false;
+                setupSizeTabs();
+            }
+        });
+    }
+
+    function updateSizeOptions(sizes) {
+        const sizeContainer = document.querySelector(".size-option-container");
+        const newSelect = document.createElement("select");
+        newSelect.id = "size-options";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "사이즈 선택";
+        newSelect.appendChild(defaultOption);
+
+        sizes.forEach(size => {
+            const option = document.createElement("option");
+            option.value = size.sizeCode;
+            option.textContent = `SIZE: ${size.sizeName} - 재고: ${size.stock}`;
+            option.dataset.stock = size.stock;
+            newSelect.appendChild(option);
+        });
+
+        sizeContainer.innerHTML = "";
+        sizeContainer.appendChild(newSelect);
+    }
+
+    let index = 0;
+    const nextBtn = document.querySelector('.next-btn');
+    const prevBtn = document.querySelector('.prev-btn');
+    const productImage = document.querySelector('.product-image');
+    const totalImages = document.querySelectorAll('.product-image img').length;
+    const imageWidth = document.querySelector('.product-image img').offsetWidth;
+
+    const updateImagePosition = () => {
+        productImage.style.transform = `translateX(-${index * imageWidth}px)`;
+    };
+
+    nextBtn.addEventListener('click', () => {
+        index = (index + 1) % totalImages;
+        updateImagePosition();
+    });
+
+    prevBtn.addEventListener('click', () => {
+        index = (index - 1 + totalImages) % totalImages;
+        updateImagePosition();
+    });
+
+    document.getElementById("paymentBtn").addEventListener("click", () => {
+        closeModal();
+        loadPortOne();
+    });
+
+    document.getElementById("changeAddressBtn").addEventListener("click", () => {
+        changeAddress();
+    });
+
+    document.querySelector(".close").addEventListener("click", () => {
+        closeModal();
+    });
+
+    function setupReviewTabs() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                if ((tabId === 'write' || tabId === 'my-reviews') && !isAuthenticated) {
+                    window.location.href = '/login';
+                    return;
+                }
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                button.classList.add('active');
+                document.getElementById(`review-${tabId}`).classList.add('active');
+                if (tabId === 'view') {
+                    loadReviews();
+                } else if (tabId === 'my-reviews') {
+                    loadMyReviews();
+                }
+            });
+        });
+
+        const filterSelect = document.getElementById('review-filter');
+        filterSelect.addEventListener('change', () => {
+            loadReviews(filterSelect.value);
+        });
+
+        const reviewForm = document.getElementById('review-form');
+        reviewForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            submitReview();
+        });
+
+        document.getElementById('review-image').addEventListener('change', function (event) {
+            const preview = document.getElementById('image-preview');
+            preview.innerHTML = '';
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        const defaultTab = document.querySelector('.tab-button[data-tab="view"]');
+        defaultTab.classList.add('active');
+        document.getElementById('review-view').classList.add('active');
+        loadReviews();
+    }
+
+    function loadReviews(filter = 'all', page = 1) {
+        currentPage = page;
+        const reviewLoading = document.getElementById('review-loading');
+        reviewLoading.style.display = 'block';
+        $.ajax({
+            url: "/api/reviews",
+            method: "GET",
+            data: { productId: productId, filter: filter },
+            dataType: "json",
+            success: function (response) {
+                console.log("Reviews loaded:", response);
+                allReviews = response;
+                totalReviews = response.length;
+                renderReviewsWithPagination('view');
+            },
+            error: function (xhr, status, error) {
+                console.error("Error loading reviews:", error);
+                let errorMessage = "상품후기를 불러올 수 없습니다.";
+                if (xhr.status === 401) {
+                    errorMessage = "상품후기를 조회하려면 로그인이 필요합니다.";
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage += " " + xhr.responseJSON.message;
+                }
+                $("#review-list").html(`<p>${errorMessage}</p>`);
+            },
+            complete: function () {
+                reviewLoading.style.display = 'none';
+            }
+        });
+    }
+
+    function loadMyReviews(page = 1) {
+        currentPage = page;
+        const myReviewLoading = document.getElementById('my-review-loading');
+        myReviewLoading.style.display = 'block';
+        $.ajax({
+            url: "/api/reviews/my-reviews",
+            method: "GET",
+            data: { productId: productId },
+            dataType: "json",
+            success: function (response) {
+                console.log("My reviews loaded:", response);
+                allReviews = response;
+                totalReviews = response.length;
+                renderReviewsWithPagination('my-reviews');
+            },
+            error: function (xhr, status, error) {
+                console.error("Error loading my reviews:", error);
+                let errorMessage = "내가 쓴 상품후기를 불러올 수 없습니다.";
+                if (xhr.status === 401) {
+                    errorMessage = "로그인이 필요합니다.";
+                    window.location.href = '/login';
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage += " " + xhr.responseJSON.message;
+                }
+                $("#my-review-list").html(`<p>${errorMessage}</p>`);
+            },
+            complete: function () {
+                myReviewLoading.style.display = 'none';
+            }
+        });
+    }
+
+    function renderReviewsWithPagination(tabId) {
+        const reviewList = tabId === 'view' ? document.getElementById('review-list') : document.getElementById('my-review-list');
+        reviewList.innerHTML = '';
+
+        if (allReviews.length === 0) {
+            reviewList.innerHTML = tabId === 'view' ? '<p>등록된 상품후기가 없습니다.</p>' : '<p>작성한 상품후기가 없습니다.</p>';
+            return;
+        }
+
+        const startIndex = (currentPage - 1) * reviewsPerPage;
+        const endIndex = Math.min(startIndex + reviewsPerPage, totalReviews);
+        const currentReviews = allReviews.slice(startIndex, endIndex);
+
+        currentReviews.forEach(review => {
+            const reviewElement = document.createElement('div');
+            reviewElement.classList.add('review');
+            let reviewHTML = `
+                <div class="review-meta">
+                    <span class="review-author">${review.userName}</span>
+                    <span class="review-date">${review.createdAtStr}</span>
+            `;
+            if (tabId === 'my-reviews') {
+                reviewHTML += `
+                    <button class="delete-review-btn" data-review-id="${review.reviewId}" title="리뷰 삭제">×</button>
+                `;
+            }
+            reviewHTML += `
+                <div class="review-rating">
+            `;
+            for (let i = 5; i >= 1; i--) {
+                reviewHTML += `
+                    <input type="radio" id="star${i}-${review.reviewId}" name="rate-${review.reviewId}" value="${i}" ${i === review.rating ? 'checked' : ''} disabled />
+                    <label for="star${i}-${review.reviewId}" title="${i} stars" class="${i <= review.rating ? 'filled' : ''}"></label>
+                `;
+            }
+            reviewHTML += '</div></div>';
+            if (review.imageUrls && review.imageUrls.length > 0) {
+                reviewHTML += `
+                    <div class="review-image">
+                        <img src="${review.imageUrls[0]}" alt="Review Image">
+                    </div>
+                `;
+            }
+            reviewHTML += `
+                <div class="review-content">${review.content}</div>
+            `;
+            reviewElement.innerHTML = reviewHTML;
+            reviewList.appendChild(reviewElement);
+        });
+
+        if (tabId === 'my-reviews') {
+            document.querySelectorAll('.delete-review-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const reviewId = button.getAttribute('data-review-id');
+                    deleteReview(reviewId);
+                });
+            });
+        }
+
+        renderPagination(tabId);
+    }
+
+    function deleteReview(reviewId) {
+        if (!confirm("이 리뷰를 삭제하시겠습니까?")) {
+            return;
+        }
+        $.ajax({
+            url: `/api/reviews/${reviewId}`,
+            method: "DELETE",
+            success: function () {
+                alert("리뷰가 삭제되었습니다.");
+                loadMyReviews(currentPage);
+            },
+            error: function (xhr, status, error) {
+                console.error("Error deleting review:", error);
+                let errorMessage = "리뷰 삭제에 실패했습니다.";
+                if (xhr.status === 401) {
+                    errorMessage = "로그인이 필요합니다.";
+                    window.location.href = '/login';
+                } else if (xhr.status === 403) {
+                    errorMessage = "본인이 작성한 리뷰만 삭제할 수 있습니다.";
+                } else if (xhr.status === 404) {
+                    errorMessage = "리뷰를 찾을 수 없습니다.";
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage += " " + xhr.responseJSON.message;
+                }
+                alert(errorMessage);
+            }
+        });
+    }
+
+    function renderPagination(tabId) {
+        const reviewList = tabId === 'view' ? document.getElementById('review-list') : document.getElementById('my-review-list');
+        const existingPagination = reviewList.parentElement.querySelector('.pagination');
+        if (existingPagination) {
+            existingPagination.remove();
+        }
+
+        const paginationContainer = document.createElement('div');
+        paginationContainer.classList.add('pagination');
+
+        const totalPages = Math.ceil(totalReviews / reviewsPerPage);
+
+        const prevButton = document.createElement('button');
+        prevButton.textContent = '<';
+        prevButton.classList.add('pagination-button');
+        if (currentPage === 1) {
+            prevButton.disabled = true;
+        }
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                if (tabId === 'view') {
+                    loadReviews(document.getElementById('review-filter').value, currentPage - 1);
+                } else if (tabId === 'my-reviews') {
+                    loadMyReviews(currentPage - 1);
+                }
+            }
+        });
+        paginationContainer.appendChild(prevButton);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.classList.add('pagination-button');
+            if (i === currentPage) {
+                pageButton.classList.add('active');
+            }
+            pageButton.addEventListener('click', () => {
+                if (tabId === 'view') {
+                    loadReviews(document.getElementById('review-filter').value, i);
+                } else if (tabId === 'my-reviews') {
+                    loadMyReviews(i);
+                }
+            });
+            paginationContainer.appendChild(pageButton);
+        }
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = '>';
+        nextButton.classList.add('pagination-button');
+        if (currentPage === totalPages) {
+            nextButton.disabled = true;
+        }
+        nextButton.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                if (tabId === 'view') {
+                    loadReviews(document.getElementById('review-filter').value, currentPage + 1);
+                } else if (tabId === 'my-reviews') {
+                    loadMyReviews(currentPage + 1);
+                }
+            }
+        });
+        paginationContainer.appendChild(nextButton);
+
+        reviewList.insertAdjacentElement('afterend', paginationContainer);
+    }
+
+    function submitReview() {
+        const ratingInput = document.querySelector('input[name="rating"]:checked');
+        const content = document.getElementById('review-content').value.trim();
+        const imageInput = document.getElementById('review-image');
+
+        if (!ratingInput) {
+            alert("평점을 선택해주세요.");
+            return;
+        }
+
+        if (!content) {
+            alert("상품후기 내용을 입력해주세요.");
+            return;
+        }
+
+        const rating = ratingInput.value;
+        const formData = new FormData();
+        formData.append('productId', productId);
+        formData.append('rating', rating);
+        formData.append('content', content);
+        if (imageInput.files.length > 0) {
+            formData.append('image', imageInput.files[0]);
+        }
+
+        const submitButton = document.querySelector('#review-form button[type="submit"]');
+        const originalButtonText = submitButton.textContent;
+        submitButton.textContent = '등록 중...';
+        submitButton.disabled = true;
+
+        $.ajax({
+            url: "/api/reviews",
+            method: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                console.log("Review submitted:", response);
+                alert("상품후기가 등록되었습니다.");
+                document.querySelector('.tab-button[data-tab="view"]').click();
+                loadReviews();
+                document.getElementById('review-form').reset();
+                document.getElementById('image-preview').innerHTML = '';
+            },
+            error: function (xhr, status, error) {
+                console.error("Error submitting review:", error);
+                let errorMessage = "상품후기 등록에 실패했습니다.";
+                if (xhr.status === 401) {
+                    errorMessage = "로그인이 필요합니다.";
+                    window.location.href = '/login';
+                } else if (xhr.status === 403) {
+                    const response = xhr.responseJSON;
+                    if (response && response.error === "not_purchased") {
+                        errorMessage = response.message;
+                    } else if (response && response.error === "already_reviewed") {
+                        errorMessage = response.message;
+                    } else {
+                        errorMessage = "상품후기 등록 권한이 없습니다.";
+                    }
+                } else if (xhr.status === 400) {
+                    errorMessage = "입력값이 유효하지 않습니다. 평점과 내용을 확인해주세요.";
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage += " " + xhr.responseJSON.message;
+                }
+                alert(errorMessage);
+            },
+            complete: function () {
+                submitButton.textContent = originalButtonText;
+                submitButton.disabled = false;
+            }
+        });
+    }
+
+    function setupSizeTabs() {
+        const sizeTabButtons = document.querySelectorAll('.size-tab-button');
+        const sizeTabContents = document.querySelectorAll('.size-tab-content');
+
+        sizeTabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                sizeTabButtons.forEach(btn => btn.classList.remove('active'));
+                sizeTabContents.forEach(content => {
+                    content.classList.remove('active');
+                    content.innerHTML = '';
+                });
+                button.classList.add('active');
+                const activeContent = document.getElementById(`size-${tabId}`);
+                activeContent.classList.add('active');
+                loadSizeTable(tabId, activeContent);
+            });
+        });
+
+        let isShoes = false;
+        if (productSizes && productSizes.length > 0) {
+            for (let size of productSizes) {
+                const sizeNumber = parseFloat(size.sizeName);
+                if (!isNaN(sizeNumber) && sizeNumber >= 220 && sizeNumber <= 260) {
+                    isShoes = true;
+                    break;
+                }
+            }
+        }
+
+        let defaultTab;
+        if (isShoes) {
+            defaultTab = document.querySelector('.size-tab-button[data-tab="shoes"]');
+        } else {
+            defaultTab = document.querySelector('.size-tab-button[data-tab="clothing"]');
+        }
+        defaultTab.click();
+    }
+
+    function loadSizeTable(tabId, container) {
+        container.innerHTML = '<p>로딩 중...</p>';
+        const clothingData = `
+            <table class="size-table">
+                <thead>
+                    <tr>
+                        <th>구분</th>
+                        <th>한국</th>
+                        <th colspan="2">미국</th>
+                        <th>영국</th>
+                        <th colspan="2">일본</th>
+                        <th>프랑스</th>
+                        <th>유럽</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>XS</td><td>85</td><td>85-90</td><td>14</td><td>0</td><td>S</td><td>36</td><td>36</td><td>40</td></tr>
+                    <tr><td>S</td><td>90</td><td>90-95</td><td>15</td><td>1</td><td>M</td><td>38</td><td>38</td><td>42, 44</td></tr>
+                    <tr><td>M</td><td>95</td><td>95-100</td><td>15.5-16</td><td>2</td><td>L</td><td>40</td><td>40</td><td>46, 48</td></tr>
+                    <tr><td>L</td><td>100</td><td>100-105</td><td>16.5</td><td>3</td><td>LL, XL</td><td>42</td><td>42</td><td>50, 52</td></tr>
+                    <tr><td>XL</td><td>105</td><td>105-110</td><td>17.5</td><td>4</td><td>-</td><td>44</td><td>44</td><td>54, 56, 58</td></tr>
+                    <tr><td>XXL</td><td>110</td><td>110-</td><td>-</td><td>5</td><td>-</td><td>46</td><td>46</td><td>60, 62</td></tr>
+                </tbody>
+            </table>
+        `;
+        const shoesData = `
+            <table class="size-table">
+                <thead>
+                    <tr>
+                        <th>한국(mm)</th>
+                        <th>일본(cm)</th>
+                        <th colspan="2">국제 사이즈</th>
+                        <th colspan="2">미국</th>
+                        <th colspan="2">영국</th>
+                        <th colspan="2">유럽</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>220</td><td>22</td><td>남</td><td>-</td><td>-</td><td>5</td><td>-</td><td>3</td><td>-</td><td>36</td></tr>
+                    <tr><td>225</td><td>22.5</td><td>여</td><td>XXXS</td><td>-</td><td>5.5</td><td>-</td><td>3.5</td><td>-</td><td>36.5</td></tr>
+                    <tr><td>230</td><td>23</td><td>남</td><td>XXXS</td><td>-</td><td>6</td><td>-</td><td>4</td><td>-</td><td>37</td></tr>
+                    <tr><td>235</td><td>23.5</td><td>여</td><td>XXS</td><td>-</td><td>6.5</td><td>-</td><td>4.5</td><td>-</td><td>37.5</td></tr>
+                    <tr><td>240</td><td>24</td><td>남</td><td>XS</td><td>6</td><td>7</td><td>5</td><td>-</td><td>38</td><td>-</td></tr>
+                    <tr><td>245</td><td>24.5</td><td>여</td><td>XS</td><td>6.5</td><td>7.5</td><td>-</td><td>5.5</td><td>38.5</td><td>-</td></tr>
+                    <tr><td>250</td><td>25</td><td>남</td><td>S</td><td>7</td><td>8</td><td>6</td><td>-</td><td>39</td><td>-</td></tr>
+                    <tr><td>255</td><td>25.5</td><td>여</td><td>-</td><td>7.5</td><td>8.5</td><td>6.5</td><td>-</td><td>39.5</td><td>-</td></tr>
+                    <tr><td>260</td><td>26</td><td>남</td><td>-</td><td>8</td><td>9</td><td>7</td><td>-</td><td>40</td><td>-</td></tr>
+                </tbody>
+            </table>
+        `;
+        setTimeout(() => {
+            if (tabId === 'clothing') {
+                container.innerHTML = clothingData;
+            } else if (tabId === 'shoes') {
+                container.innerHTML = shoesData;
+            }
+        }, 10);
+    }
+</script>
+
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</html>

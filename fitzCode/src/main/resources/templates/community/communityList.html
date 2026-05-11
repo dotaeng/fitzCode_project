@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fitzCode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link th:fragment="header-head" rel="stylesheet" th:href="@{/css/community/communityList.css}"/>
+</head>
+<body>
+
+<!-- header -->
+<div th:replace="~{fragments/header}"></div>
+
+<div class="container">
+    <div class="filter-container">
+        <a th:href="@{/community/list(category='All')}"><button class="filter-btn">All</button></a>
+        <a th:href="@{/community/list(category='캐주얼')}"><button class="filter-btn">Casual</button></a>
+        <a th:href="@{/community/list(category='스트릿')}"><button class="filter-btn">Street</button></a>
+        <a th:href="@{/community/list(category='클래식')}"><button class="filter-btn">Classic</button></a>
+        <a th:href="@{/community/list(category='시크')}"><button class="filter-btn">Chic</button></a>
+        <a th:href="@{/community/list(category='고프코어')}"><button class="filter-btn">Gorpcore</button></a>
+
+        <a href="/community/form" style="text-decoration: none; margin-left: auto">
+            <button type="button" class="button">
+                <span class="button__text">POST</span>
+                <span class="button__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke="currentColor" height="24" fill="none" class="svg">
+                        <line y2="19" y1="5" x2="12" x1="12"></line>
+                        <line y2="12" y1="12" x2="19" x1="5"></line>
+                    </svg>
+                </span>
+            </button>
+        </a>
+    </div>
+
+    <div class="style-grid">
+        <div class="card" th:each="post : ${posts}">
+            <a th:href="@{/community/detail/{postId}(postId=${post.post_id})}">
+                <div class="card-header">
+                    <img th:src="${post['thumbnail_image_url'] != null} ? ${post['thumbnail_image_url']} : '/img/default-style.jpg'"
+                         th:alt="'스타일 이미지 - ' + ${post.title}"
+                         th:onerror="'this.src=\'/img/default-style.jpg\''"/>
+                    <label class="label_container">
+                        <input type="checkbox" th:checked="${post.isLiked}" th:data-post-id="${post.post_id}" class="like-checkbox">
+                        <svg id="Layer_1" version="1.0" viewBox="0 0 24 24" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                            <path d="M16.4,4C14.6,4,13,4.9,12,6.3C11,4.9,9.4,4,7.6,4C4.5,4,2,6.5,2,9.6C2,14,12,22,12,22s10-8,10-12.4C22,6.5,19.5,4,16.4,4z"></path>
+                        </svg>
+                    </label>
+                </div>
+                <div class="card-content">
+                    <span class="card-content-profile">
+                        <img th:src="${post['profile_image'] != null} ? ${post['profile_image']} : '/img/default-profile.png'"
+                             alt="프로필 이미지"
+                             th:onerror="'this.src=\'/img/default-profile.png\''"/>
+                    </span>
+                    <span th:text="${post.user_name}"></span>
+                </div>
+                <div class="card-footer">
+                    <p th:text="${post.title}">스타일 테스트입니다 - 제목</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div th:if="${#lists.isEmpty(posts)}" class="empty-message">
+    게시물이 없습니다
+</div>
+
+<!-- footer -->
+<div th:replace="~{fragments/footer}"></div>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedCategory = urlParams.get('category') || 'All';
+
+        const categoryMap = {
+            'All': 'All',
+            'Casual': '캐주얼',
+            'Street': '스트릿',
+            'Classic': '클래식',
+            'Chic': '시크',
+            'Gorpcore': '고프코어'
+        };
+
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            const buttonText = button.textContent;
+            const mappedCategory = categoryMap[buttonText];
+            if (mappedCategory === selectedCategory) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+
+        // 로그인 여부 확인
+        const isLoggedIn = /*[[${isLoggedIn}]]*/ false;
+
+        // 좋아요 체크박스 이벤트 처리
+        document.querySelectorAll('.like-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                if (!isLoggedIn) {
+                    alert('로그인이 필요합니다.');
+                    this.checked = !this.checked; // 체크 상태 복원
+                    window.location.href = '/login'; // 로그인 페이지로 리다이렉트
+                    return;
+                }
+
+                const postId = this.getAttribute('data-post-id');
+                const isChecked = this.checked;
+                const url = isChecked ? `/api/community/like/${postId}` : `/api/community/unlike/${postId}`;
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ postId: postId })
+                })
+                    .then(response => {
+                        if (response.status === 401) {
+                            alert('로그인이 필요합니다.');
+                            window.location.href = '/login'; // 로그인 페이지로 리다이렉트
+                            return;
+                        }
+                        if (!response.ok) {
+                            // 응답이 JSON이 아닌 경우를 처리
+                            return response.text().then(text => {
+                                throw new Error(`좋아요 처리 실패: ${response.status} ${response.statusText}, Response: ${text}`);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!data.success) {
+                            alert(data.message || '좋아요 처리에 실패했습니다.');
+                            this.checked = !isChecked;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.checked = !isChecked;
+                        alert('네트워크 오류가 발생했습니다.');
+                    });
+            });
+        });
+    });
+</script>
+</body>
+</html>

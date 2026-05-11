@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <link th:fragment="footer-head" rel="stylesheet" th:href="@{/css/fragments/footer.css}"/>
+</head>
+<body>
+
+<div class="unique-footer-wrapper">
+
+    <!-- 공통 푸터 포함 -->
+    <footer th:fragment="footer" class="footer-wrap">
+        <div class="footer-container">
+
+            <!-- 좌측: 회사 정보 -->
+            <div class="footer__company">
+                <p class="footer__title">(주)fitzCode</p>
+
+                <div class="footer__contents">
+                    <div class="footer__info">
+                        <span>주식회사 fitzCode (FtzC Co., Ltd.)  대표이사: 조형윤  개인정보보호책임자: 저스틴 (<a href="#">support.fitzCode@fitzCode.co.kr</a>)</span>
+                    </div>
+                    <div class="footer__info">
+                        <span>사업자등록번호: 000-00-00000
+                            <a href="#" target="_blank">사업자정보</a>  통신판매업신고: 제 2025-서울종로-0000호</span>
+                    </div>
+
+                    <br>
+
+                    <div class="contents__address">
+                        <p>사업장소재지: 서울특별시 종로구 율곡로 10길, 105 디아망 4층 (봉익동 , 10-1)</p>
+                        <p>호스팅 서비스: AWS</p>
+                    </div>
+                </div>
+
+                <div class="footer__notice">
+                    <p class="notice__desc">
+                        주식회사 fitzCode는 직접 판매자로서 모든 상품의 정보 및 거래 과정에 대해 책임을 집니다. <br>
+                        또한, 고객님께 안전하고 신뢰할 수 있는 거래 환경을 제공하기 위해 최선을 다하고 있습니다.
+                    </p>
+                    <div class="notice__desc-wrap">
+                        <p class="notice__desc">
+                            fitzcode.shop은 실제 운영되는 사이트가 아닙니다.
+                        </p>
+                        <a href="#" target="_blank" class="link-btn">
+                            <span>서비스 가입사실 확인</span>
+                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxwYXRoIGQ9Im00IDIgNCA0LTQgNCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuMiIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIi8+Cjwvc3ZnPgo=" alt="더보기">
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 우측: 고객센터 -->
+            <div class="footer__cs">
+                <div class="footer__cs-inner">
+                    <p class="footer__title">고객센터</p>
+                    <div class="footer__contents">
+                        <span class="business">평일 10:00 ~ 18:00 (주말・공휴일 휴무)<br>점심 12:30 ~ 13:30</span>
+                    </div>
+                    <p class="cs-desc">프로젝트 개발자 Git Hub</p>
+                    <div class="footer__social">
+                        <!-- GitHub 링크 1 -->
+                        <a href="https://github.com/HyeongYoon/fitzCode/" target="_blank" aria-label="GitHub - Member 1">
+                            <img src="/img/github.png" alt="GitHub Member 1" style="width: 44px; height: 24px;">
+                        </a>
+
+                        <!-- GitHub 링크 2 -->
+                        <a href="https://github.com/usersejin" target="_blank" aria-label="GitHub - Member 2">
+                            <img src="/img/github.png" alt="GitHub Member 2" style="width: 44px; height: 24px;">
+                        </a>
+
+                        <!-- GitHub 링크 3 -->
+                        <a href="https://github.com/l-juno" target="_blank" aria-label="GitHub - Member 3">
+                            <img src="/img/github.png" alt="GitHub Member 3" style="width: 44px; height: 24px;">
+                        </a>
+
+                        <!-- GitHub 링크 4 -->
+                        <a href="https://github.com/dotaeng" target="_blank" aria-label="GitHub - Member 4">
+                            <img src="/img/github.png" alt="GitHub Member 4" style="width: 44px; height: 24px;">
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fitzCode</title>
+    <link rel="stylesheet" th:href="@{/css/admin/managerSidebar.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin/orderList.css}"/>
+</head>
+<body>
+<div class="container">
+    <div class="sidebar-wrapper">
+        <div th:replace="~{fragments/managerSidebar}"></div>
+    </div>
+    <div class="content-wrapper">
+        <h2>주문 목록</h2>
+
+        <!-- 필터 -->
+        <div class="search-container">
+            <form id="filterForm" th:action="@{/admin/orders}" method="get">
+                <div class="filter-group">
+                    <label for="status">상태 필터:</label>
+                    <select name="status" id="status">
+                        <option value="">전체</option>
+                        <option th:each="orderStatus : ${orderStatuses}"
+                                th:value="${orderStatus.code}"
+                                th:text="${orderStatus.description}"
+                                th:selected="${status != null and status == orderStatus.code}"></option>
+                    </select>
+
+                    <label for="sortBy">정렬 기준:</label>
+                    <select name="sortBy" id="sortBy">
+                        <option value="createdAt" th:selected="${sortBy == 'createdAt'}">최신순</option>
+                        <option value="status" th:selected="${sortBy == 'status'}">상태순</option>
+                    </select>
+
+                    <button type="submit">적용</button>
+                </div>
+                <input type="hidden" name="page" th:value="${currentPage}">
+                <input type="hidden" name="size" th:value="${size}">
+            </form>
+            <a href="javascript:history.back()" class="back-button">뒤로가기</a>
+        </div>
+
+        <!-- 주문 목록 -->
+        <table>
+            <thead>
+            <tr>
+                <th>주문 ID</th>
+                <th>주문 상태</th>
+                <th>상품명</th>
+                <th>주문 날짜</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="order : ${orders}">
+                <td th:text="${order.orderId}"></td>
+                <td>
+                    <span th:switch="${order.orderStatus.code}">
+                        <span th:case="1" class="order-status order-status-complete" th:text="${order.orderStatus.description}"></span>
+                        <span th:case="2" class="order-status order-status-shipping" th:text="${order.orderStatus.description}"></span>
+                        <span th:case="3" class="order-status order-status-delivered" th:text="${order.orderStatus.description}"></span>
+                        <span th:case="4" class="order-status order-status-canceled" th:text="${order.orderStatus.description}"></span>
+                        <span th:case="*" class="order-status" th:text="${order.orderStatus.description}"></span>
+                    </span>
+                </td>
+                <td>
+                    <a th:href="@{/admin/orders/{orderId}(orderId=${order.orderId})}"
+                       th:text="${order.productName}"
+                       class="product-link">
+                    </a>
+                </td>
+                <td th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(orders)}">
+                <td colspan="5">-</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination" th:if="${totalPages > 1}">
+            <!-- 이전 버튼 -->
+            <a th:href="@{/admin/orders(page=${currentPage > 1 ? currentPage - 1 : 1}, size=${size}, status=${status}, sortBy=${sortBy})}"
+               th:text="'이전'"
+               th:class="${currentPage == 1} ? 'disabled' : ''"></a>
+
+            <!-- 페이지 번호 (5개) -->
+            <span th:each="pageNum : ${pageRange}">
+                <a th:href="@{/admin/orders(page=${pageNum}, size=${size}, status=${status}, sortBy=${sortBy})}"
+                   th:text="${pageNum}"
+                   th:class="${pageNum == currentPage} ? 'active' : ''"></a>
+            </span>
+
+            <!-- 다음 버튼 -->
+            <a th:href="@{/admin/orders(page=${currentPage < totalPages ? currentPage + 1 : totalPages}, size=${size}, status=${status}, sortBy=${sortBy})}"
+               th:text="'다음'"
+               th:class="${currentPage == totalPages} ? 'disabled' : ''"></a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

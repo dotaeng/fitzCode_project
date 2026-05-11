@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <link rel="stylesheet" th:href="@{/css/notice/list.css}"/>
+</head>
+<body>
+<div th:replace="~{fragments/header}"></div>
+<div class="notice-sidebar">
+  <h4>고객센터</h4>
+  <ul>
+    <li><a th:href="@{/notice}" th:classappend="${menuCurrentPage == 'notice'} ? 'active'">공지사항</a></li>
+    <li><a th:href="@{/notice/faq}" th:classappend="${menuCurrentPage == 'faq'} ? 'active'">FAQ</a></li>
+  </ul>
+</div>
+<div class="notice-main-wrapper">
+  <div class="notice-main-content">
+    <div class="notice-header">
+      <h3>공지사항</h3>
+    </div>
+    <table class="notice-table">
+      <thead>
+      <tr>
+        <th>-</th>
+        <th>제목</th>
+        <th>작성일</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="notice, iterStat : ${notices}">
+        <td th:text="${iterStat.count + (currentPage - 1) * size}"></td>
+        <td>
+          <a th:href="@{/notice/{id}(id=${notice.noticeId})}" th:text="${notice.title}"></a>
+        </td>
+        <td th:text="${#temporals.format(notice.createdAt, 'yy/MM/dd')}"></td>
+      </tr>
+      <tr th:if="${notices.isEmpty()}">
+        <td colspan="3">공지사항이 없습니다.</td>
+      </tr>
+      </tbody>
+    </table>
+    <div class="pagination" th:if="${totalPages > 1}">
+      <a th:href="@{/notice(page=${currentPage - 1})}" th:class="${currentPage == 1} ? 'disabled'" th:text="'<'"></a>
+      <a th:each="page : ${pageNumbers}"
+         th:href="@{/notice(page=${page})}"
+         th:text="${page}"
+         th:class="${page == currentPage} ? 'active'"></a>
+      <a th:href="@{/notice(page=${currentPage + 1})}" th:class="${currentPage == totalPages} ? 'disabled'" th:text="'>'"></a>
+    </div>
+  </div>
+</div>
+<div class="footer-section">
+  <div th:replace="~{fragments/footer}"></div>
+  <script th:src="@{/js/admin/notifications.js}"></script>
+  <script th:src="@{/js/admin/headerNotification.js}"></script>
+</div>
+</body>
+</html>

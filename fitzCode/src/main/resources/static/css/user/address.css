@@ -1,0 +1,246 @@
+.addressInfo {
+    display: flex;
+    flex-direction: column;
+    font-size: 13.3px;
+}
+
+/*여기까지 공통*/
+
+.defaultAddress{
+    padding: 0px 20px;
+    border-radius: 25px;
+}
+
+.defaultAddress h3,
+.addressList h3{
+    border-left: 3px solid #2f2f32;
+    padding-left: 10px;
+    font-size: 17px;
+}
+
+.defaultAddress div {
+    display: flex
+;
+    justify-content: flex-start;
+    font-size: 14px;
+}
+.postalCode{
+    margin-left: 10px;
+    margin-right: 10px;
+}
+#addAddress{
+display: flex
+;
+flex-direction: column;
+align-items: flex-end;
+}
+
+#addAddress button{
+    margin: 20px 20px 0px 0px;
+    border: 1px #2f2f32 solid;
+    padding: 10px 13px;
+    border-radius: 18px;
+    background: white;
+    cursor: pointer;
+}
+
+
+.addressList{
+border-top: 1px solid #2f2f32;
+margin: 16px 0px;
+padding: 20px 10px 0px 20px;
+}
+
+.addressList div{
+    display: flex
+;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: row;
+}
+#addressOne{
+    display: flex
+;
+    padding: 26px 18px 26px 5px;
+    border-bottom: 1px solid lightgray;
+    height: 58px;
+}
+
+#addressData{
+    display: flex
+;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+#toDefaultBtn{
+    margin: 0px 10px;
+    border: 1px darkgray solid;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 17px;
+    color: #2f2f32;
+}
+
+
+#add-address-modalCloseButton {
+    cursor: pointer;
+}
+/* 모달 컨테이너 */
+#add-address-modalContainer{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+#add-address-modalContainer.hidden {
+    display: none;
+}
+
+
+
+
+/* 모달 내용 */
+.modalContent {
+    background-color: #ffffff;
+    width: 450px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+.modalContent .modal-close {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.modalContent h3 {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 35px;
+}
+/* 새주소 관련 css */
+.sub-title {
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+input[type="text"] {
+    color: gray;
+    width: 99%;
+    border: none;
+    border-bottom: #f4f4f4 1px solid;
+    padding-bottom: 6px;
+}
+
+#input-name1:focus,
+#input-name2, 
+#input-detailAddress:focus {
+    outline: none;
+    border-bottom: black 2px solid;
+}
+
+input[type="text"]:focus {
+    outline: none;
+}
+
+#name-alert {
+    margin-top: 5px;
+    color: red;
+    font-size: 12px;
+}
+
+.input-box {
+    margin: 20px 0px;
+}
+
+#searchAddress {
+    font-size: 12px;
+    display: flex;
+    border: #ddd 1px solid;
+    border-radius: 10px;
+    padding: 4px 9px;
+    height: 24px;
+    align-items: center;
+    font-weight: lighter;
+    cursor: pointer
+}
+
+#searchAddress:hover {
+    border: black 1px solid;
+}
+
+.checkDefaultAdd {
+    display: flex;
+    align-items: center;
+}
+
+.checkBtn {
+    width: 25px;
+    height: 25px;
+    background: white;
+    border-radius: 5px;
+    border: #ddd 1px solid;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.addressInfo span {
+    margin-left: 11px;
+    font-size: 14px;
+}
+
+#saveBtn {
+    background: #ddd;
+    border-radius: 14px;
+    padding: 13px;
+    margin: 30px 168px;
+    width: 114px;
+    border: none;
+    color: #f4f4f4;
+    font-size: 15px;
+}
+
+#saveBtn:hover,
+#modifyBtn:hover {
+    background: black;
+    color: white;
+}
+
+#checkDefault-btn{
+    border: 1px solid #2f2f32;
+    padding: 10px;
+    border-radius: 18px;
+    color: white;
+    text-decoration: none;
+    background: #2f2f32;
+}
+#deleteBtn{
+    border: 0px;
+    background: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+    color: #9e9e9e;
+    margin-top: 10px;
+}

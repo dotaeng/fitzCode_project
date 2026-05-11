@@ -1,0 +1,55 @@
+
+.accountInfo {
+    display: flex
+;
+    flex-direction: column;
+    font-size: 13.3px;
+    padding: 10px 20px 20px 20px;
+    margin: 30px 20px;
+}
+
+/*여기까지 공통*/
+
+
+.bankSelection {
+    padding: 10px;
+    border-radius: 10px;
+    border: 0px;
+}
+
+.selectionBox {
+    border: 1px solid #2f2f32;
+    border-radius: 10px;
+    width: 354px;
+    display: flex;
+    align-items: center;
+    margin: 10px 0px;
+    height: 40px;
+}
+
+input {
+    border: 0px;
+    width: 230px;
+    margin-left: 13px;
+}
+
+#subBox {
+    display: flex
+;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-direction: column;
+}
+
+button {
+    color: white;
+    align-self: flex-end;
+    text-decoration: none;
+    border: 1px #2f2f32 solid;
+    padding: 10px;
+    border-radius: 20px;
+    background: #2f2f32;
+    cursor: pointer;
+}
+
+

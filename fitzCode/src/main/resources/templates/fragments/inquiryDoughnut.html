@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>FitzCode</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+<div th:fragment="inquiryDoughnut(inquiryStatusCounts)" th:if="${not #maps.isEmpty(inquiryStatusCounts)}">
+  <h3><a th:href="@{/admin/inquiries}" class="chart-title">1대1 문의 현황 > </a></h3>
+  <canvas id="inquiryDoughnutChart"></canvas>
+
+  <script th:inline="javascript">
+    const Utils = {
+      CHART_COLORS: {
+        red: 'rgba(47,97,80,0.64)',
+        orange: 'rgb(65,93,159)',
+        yellow: 'rgb(0,0,0)'
+      }
+    };
+
+    // 문의 상태 개수 데이터
+    const inquiryStatusCounts = /*[[${inquiryStatusCounts}]]*/ {};
+
+    // 상태 코드를 한글로 변환
+    function convertStatusToKorean(status) {
+      const statusMap = {
+        'PENDING': '답변 대기',
+        'ANSWERED': '답변 완료',
+        'CLOSED': '종료됨'
+      };
+      return statusMap[status] || status;
+    }
+
+    // 데이터가 없는 경우 차트 표시 안함
+    if (Object.keys(inquiryStatusCounts).length === 0) {
+      console.warn("No inquiry status counts available, chart will not be displayed.");
+    } else {
+      const orderedStatuses = ['PENDING', 'ANSWERED', 'CLOSED'];
+      const orderedData = {};
+      orderedStatuses.forEach(status => {
+        if (inquiryStatusCounts.hasOwnProperty(status)) {
+          orderedData[status] = inquiryStatusCounts[status];
+        }
+      });
+
+      // 도넛 차트 데이터 상태 이름 한글로 변환, 순서 유지
+      const data = {
+        labels: Object.keys(orderedData).map(status => convertStatusToKorean(status)),
+        datasets: [{
+          label: '1대1 문의 상태',
+          data: Object.values(orderedData),
+          backgroundColor: [
+            Utils.CHART_COLORS.red,    // 답변 대기
+            Utils.CHART_COLORS.orange, // 답변 완료
+            Utils.CHART_COLORS.yellow  // 종료됨
+          ]
+        }]
+      };
+
+      // 차트 설정
+      const config = {
+        type: 'doughnut',
+        data: data,
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            title: {
+              display: false,
+              text: '1대1 문의 상태'
+            }
+          }
+        },
+      };
+
+      // DOM 로드 후 차트 초기화
+      document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('inquiryDoughnutChart');
+        if (ctx) {
+          try {
+            new Chart(ctx.getContext('2d'), config);
+          } catch (error) {
+            console.error('Error initializing chart:', error);
+          }
+        }
+      });
+    }
+
+  </script>
+</div>
+</body>
+</html>

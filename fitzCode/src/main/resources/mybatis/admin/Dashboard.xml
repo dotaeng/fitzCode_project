@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.fitzcode.admin.mapper.DashboardMapper">
+
+    <!-- 1대1 문의 상태별 개수 -->
+    <select id="countByStatus" resultType="int">
+        SELECT COUNT(*)
+        FROM INQUIRY
+        WHERE status = #{status}
+    </select>
+
+    <!-- 1주일간 신규 가입자 수 조회 -->
+    <select id="getWeeklyNewUsersWithDates" resultType="map">
+        SELECT DATE(created_at) AS signup_date, COUNT(*) AS count
+        FROM USER
+        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        GROUP BY DATE(created_at)
+    </select>
+
+    <!-- 1주일간 방문자 수 조회 -->
+    <select id="getWeeklyVisitorsWithDates" resultType="VisitorDTO">
+        SELECT
+        DATE(visit_time) AS visitDate,
+        COUNT(*) AS count
+        FROM VISIT_LOG
+        WHERE visit_time >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        GROUP BY DATE(visit_time)
+    </select>
+
+    <!-- 월별 총 매출 조회 -->
+    <select id="getMonthlyTotalSales" resultType="map">
+        SELECT DATE_FORMAT(created_at, '%Y-%m') AS sale_month, SUM(total_price) AS total_sales
+        FROM ORDERS
+        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+        GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+    </select>
+
+    <!-- 오늘의 총 주문 수 -->
+    <select id="getTodayOrdersCount" resultType="int">
+        SELECT COUNT(*)
+        FROM ORDERS
+        WHERE DATE(created_at) = CURDATE()
+    </select>
+
+    <!-- 오늘의 총 매출 -->
+    <select id="getTodayTotalSales" resultType="int">
+        SELECT COALESCE(SUM(total_price), 0)
+        FROM ORDERS
+        WHERE DATE(created_at) = CURDATE()
+    </select>
+
+    <!-- 현재 접속자 수 (임시) -->
+    <select id="getCurrentVisitors" resultType="int">
+        SELECT 0 <!-- WebSocket으로 대체 예정 -->
+    </select>
+
+    <!-- 최근 24시간 동안의 취소/반품 요청 수 -->
+    <select id="getCancelReturnsCount" resultType="int">
+        SELECT COUNT(*)
+        FROM ORDERS
+        WHERE (order_status = 'CANCELLED' OR order_status = 'RETURNED')
+        AND updated_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+    </select>
+
+    <!-- 등급별 회원 수 조회 -->
+    <select id="getMemberTierCounts" resultType="map">
+        SELECT COALESCE(t.tier_level, 1) AS level, COUNT(*) AS count
+        FROM USER u
+        LEFT JOIN USER_TIER t ON u.user_id = t.user_id
+        GROUP BY COALESCE(t.tier_level, 1)
+    </select>
+
+    <!-- 방문자 로그 삽입 -->
+    <insert id="insertVisitLog">
+        INSERT INTO VISIT_LOG (user_id, visitor_id, visit_time, page_url, referrer_url, user_agent, device_type, ip_address)
+        VALUES (#{userId}, #{visitorId}, #{visitTime}, #{pageUrl}, #{referrerUrl}, #{userAgent}, #{deviceType}, #{ipAddress})
+    </insert>
+
+    <!-- 최근 방문 로그 조회 (중복 체크용) -->
+    <select id="findRecentVisitLogByVisitorId" resultType="VisitorDTO">
+        SELECT * FROM VISIT_LOG
+        WHERE visitor_id = #{visitorId}
+        ORDER BY visit_time DESC LIMIT 1
+    </select>
+
+</mapper>

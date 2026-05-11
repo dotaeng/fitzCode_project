@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <link rel="stylesheet" th:href="@{/css/inquiry/inquiryList.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+<body>
+
+<!-- header -->
+<div th:replace="~{fragments/header}"></div>
+
+<br><br><br><br>
+<div class="mypageContainer">
+    <!-- navi -->
+    <div th:replace="~{fragments/mypageNavi}"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="mypageContent">
+        <h2>1:1 문의내역</h2>
+        <div id="hr"></div>
+        <div class="inquiryListInfo">
+            <th:block th:if="${list != null && list.size() > 0}">
+                <table>
+                    <tr>
+                        <th>문의 번호</th>
+                        <th>제목</th>
+                        <th>문의 유형</th>
+                        <th>문의 상태</th>
+                        <th>등록 날짜</th>
+                    </tr>
+                    <tr>
+                        <td colspan="5"><div></div></td>
+                    </tr>
+                    <th:block th:each="dto, state : ${list}">
+                        <tr>
+                            <td th:text="${state.count}" style="font-weight: bold"></td>
+                            <td><a th:href="@{detail/{inquiryId}(inquiryId=${dto.inquiryId})}"
+                                   th:text="${dto.subject}"></a></td>
+                            <td th:text="${dto.getCategory().description}"></td>
+                            <td th:text="${dto.getStatus().description}"></td>
+                            <td th:text="${#temporals.format(dto.createdAt,'yyyy/MM/dd')}"></td>
+                        </tr>
+                    </th:block>
+                </table>
+            </th:block>
+            <div style="margin: 40px"><a th:href="@{/inquiry/inquiryForm}">1:1 문의 등록</a></div>
+        </div>
+    </div>
+</div>
+<br>
+<br>
+<br>
+<br>
+<br>
+<!-- footer -->
+<div th:replace="~{fragments/footer}"></div>
+</body>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</html>

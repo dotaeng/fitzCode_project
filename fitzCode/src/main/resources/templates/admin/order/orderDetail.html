@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fitzCode</title>
+    <link rel="stylesheet" th:href="@{/css/admin/orderDetail.css}"/>
+</head>
+<body>
+<div class="container">
+    <div class="content-wrapper">
+        <h2>
+            주문 상세
+            <div class="button-group">
+                <a href="javascript:history.back()" class="back-button">뒤로가기</a>
+            </div>
+        </h2>
+        <div th:if="${orderDetail.orderId != null}">
+            <div class="info-container">
+                <div class="order-info">
+                    <h3>주문 정보</h3>
+                    <p><strong>주문 번호:</strong> <span th:text="${orderDetail.orderId} ?: '-'"></span></p>
+                    <p><strong>주문 상태:</strong> <span th:switch="${orderDetail.orderStatus}">
+                        <span th:case="1">배송 준비중</span>
+                        <span th:case="2">배송중</span>
+                        <span th:case="3">배송완료</span>
+                        <span th:case="4">취소</span>
+                        <span th:case="*">-</span>
+                    </span></p>
+                    <p><strong>주문 날짜:</strong> <span th:text="${#temporals.format(orderDetail.createdAt, 'yyyy-MM-dd HH:mm:ss')} ?: '-'"></span></p>
+                    <p><strong>총 주문 금액:</strong> <span th:text="${#numbers.formatInteger(orderDetail.totalAmount, 3, 'COMMA')} ?: '-'"></span>원</p>
+                    <p><strong>주문자 정보:</strong> <a th:href="@{/admin/members/{userId}(userId=${orderDetail.userId})}" th:text="${orderDetail.username} ?: '-'"></a> (<span th:text="${orderDetail.email} ?: '-'"></span>)</p>
+                    <p><strong>결제 수단:</strong>
+                        <span th:switch="${orderDetail.paymentMethod}">
+                            <span th:case="1">카드결제</span>
+                            <span th:case="2">계좌이체 (<span th:text="${orderDetail.bankName} ?: '-'"></span>, <span th:text="${orderDetail.accountNumber} ?: '-'"></span>, <span th:text="${orderDetail.accountHolder} ?: '-'"></span>)</span>
+                            <span th:case="3">간편결제</span>
+                            <span th:case="*">-</span>
+                        </span>
+                    </p>
+                </div>
+                <div class="delivery-info">
+                    <h3>배송 정보</h3>
+                    <p><strong>배송 상태:</strong>
+                        <span th:switch="${orderDetail.deliveryStatus}">
+                            <span th:case="1">배송 준비중</span>
+                            <span th:case="2">배송중</span>
+                            <span th:case="3">배송완료</span>
+                            <span th:case="4">반송</span>
+                            <span th:case="*">-</span>
+                        </span>
+                    </p>
+                    <p><strong>운송장 번호:</strong> <span th:text="${orderDetail.trackingNumber} ?: '-'"></span></p>
+                    <p th:if="${orderDetail.deliveryStatus == 2}">
+                        <strong>배송 시작일:</strong> <span th:text="${#temporals.format(orderDetail.shippedAt, 'yyyy-MM-dd HH:mm:ss')} ?: '-'"></span>
+                    </p>
+                    <p><strong>배송 완료일:</strong> <span th:text="${#temporals.format(orderDetail.deliveredAt, 'yyyy-MM-dd HH:mm:ss')} ?: '-'"></span></p>
+                    <p><strong>배송지:</strong> <span th:text="${orderDetail.address} ?: '-'"></span></p>
+
+                    <div class="update-form">
+                        <form th:action="@{'/admin/orders/' + ${orderDetail.orderId} + '/updateDelivery'}" method="post" onsubmit="return validateForm()">
+                            <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+                            <label for="trackingNumber">운송장 번호:</label>
+                            <input type="text" id="trackingNumber" name="trackingNumber" th:value="${orderDetail.trackingNumber != null} ? ${orderDetail.trackingNumber} : ''" placeholder="운송장 번호 입력" required/>
+                            <div id="trackingNumberError" class="error-message">운송장 번호를 입력해주세요.</div>
+
+                            <label for="deliveryStatus">배송 상태:</label>
+                            <select id="deliveryStatus" name="deliveryStatus">
+                                <option value="1" th:selected="${orderDetail.deliveryStatus == 1}">배송 준비중</option>
+                                <option value="2" th:selected="${orderDetail.deliveryStatus == 2}">배송중</option>
+                                <option value="3" th:selected="${orderDetail.deliveryStatus == 3}">배송완료</option>
+                                <option value="4" th:selected="${orderDetail.deliveryStatus == 4}">반송</option>
+                            </select>
+
+                            <button type="submit">저장</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <h3>주문 상세 내역</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>이미지</th>
+                    <th>상품명</th>
+                    <th>설명</th>
+                    <th>수량</th>
+                    <th>단가</th>
+                    <th>소계</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${orderDetail.items}">
+                    <td><img th:src="${item.imageUrl} ?: '/img/no-image.png'" class="product-image" alt="Product Image"/></td>
+                    <td th:text="${item.productName} ?: '-'"></td>
+                    <td th:text="${item.description} ?: '-'"></td>
+                    <td th:text="${item.quantity} ?: '-'"></td>
+                    <td th:text="${#numbers.formatInteger(item.unitPrice, 3, 'COMMA')} ?: '-'"></td>
+                    <td th:text="${#numbers.formatInteger(item.subtotal, 3, 'COMMA')} ?: '-'"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(orderDetail.items)}">
+                    <td colspan="6">주문 상세 내역이 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:unless="${orderDetail.orderId != null}">
+            <p>주문 데이터를 찾을 수 없습니다.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function validateForm() {
+        const trackingNumber = document.getElementById('trackingNumber').value.trim();
+        const deliveryStatus = document.getElementById('deliveryStatus').value;
+        const errorMessage = document.getElementById('trackingNumberError');
+
+        // 배송중 or 배송완료 ->  운송장 필수
+        if ((deliveryStatus == '2' || deliveryStatus == '3') && !trackingNumber) {
+            errorMessage.style.display = 'block';
+            return false;
+        }
+
+        errorMessage.style.display = 'none';
+        return true;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fitzCode</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 500px;
+            height: 400px;
+            margin: 0 auto;
+            padding: 0;
+            position: relative;
+            left: 0;
+        }
+        #memberTierChart {
+            width: 500px !important;
+            height: 400px !important;
+        }
+    </style>
+</head>
+<body>
+<div th:fragment="memberTierPieChart" class="chart-container">
+    <h3>등급별 회원 비율</h3>
+    <canvas id="memberTierChart"></canvas>
+
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            /*<![CDATA[*/
+            const memberTierCounts = /*[[${memberTierCounts}]]*/ {};
+            const labels = ['브론즈', '실버', '골드', '플래티넘'];
+            const data = labels.map(tier => memberTierCounts[labels.indexOf(tier) + 1] || 0); // tier_level 1~4 매핑
+
+            const chartData = {
+                labels: labels,
+                datasets: [{
+                    label: '회원 등급 비율',
+                    data: data,
+                    backgroundColor: [
+                        'rgba(161,111,86,0.8)',  // 브론즈
+                        'rgb(223,220,220)',      // 실버
+                        'rgb(246,218,112)',      // 골드
+                        'rgb(123,199,205)'       // 플래티넘
+                    ],
+                    borderColor: [
+                        'rgba(161,111,86,0.8)',
+                        'rgba(223,220,220)',
+                        'rgba(246,218,112)',
+                        'rgba(123,199,205)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const config = {
+                type: 'pie',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                            text: '등급별 회원 비율'
+                        }
+                    }
+                },
+            };
+
+            const ctx = document.getElementById('memberTierChart').getContext('2d');
+            new Chart(ctx, config);
+            /*]]>*/
+        });
+    </script>
+</div>
+</body>
+</html>

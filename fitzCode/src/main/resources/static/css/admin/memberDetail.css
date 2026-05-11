@@ -1,0 +1,137 @@
+.wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.adminSidebarWrap {
+    width: 250px;
+    flex-shrink: 0;
+}
+
+.sidebar {
+    position: fixed;
+    width: 250px;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.member-container {
+    flex-grow: 1;
+    padding: 20px;
+    max-width: 800px;
+    margin: 30px auto 100px auto;
+    font-family: 'Apple SD Gothic Neo', sans-serif;
+    line-height: 1.6;
+}
+
+.member-details table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.member-details th, .member-details td {
+    padding: 10px;
+    border: 1px solid #e1e1e1;
+    text-align: left;
+}
+
+.member-details th {
+    width: 20%;
+    background-color: #f9f9f9;
+    font-weight: bold;
+    color: #333;
+}
+
+.member-details td {
+    width: 80%;
+}
+
+.tier-form {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+
+.tier-form select {
+    padding: 8px;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+}
+
+.tier-form button, .tier-form a {
+    padding: 6px 12px;
+    text-decoration: none;
+    color: white;
+    background-color: #59758c;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    display: inline-block;
+    box-sizing: border-box;
+    font-size: 13px;
+    width: 53px;
+    height: 32px;
+}
+
+.tier-form button:hover, .tier-form a:hover {
+    opacity: 0.8;
+}
+
+.order-history {
+    margin-top: 20px;
+}
+
+.order-history h3 {
+    cursor: pointer;
+    color: #59758c;
+}
+
+.order-history h3:hover {
+    text-decoration: underline;
+}
+
+.order-history-table {
+    display: none;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.order-history-table th, .order-history-table td {
+    padding: 8px;
+    border: 1px solid #e1e1e1;
+    text-align: left;
+}
+
+.order-history-table th {
+    background-color: #f9f9f9;
+    font-weight: bold;
+}
+
+.order-history-table .clickable-row {
+    cursor: pointer;
+}
+
+.order-history-table .clickable-row:hover {
+    background-color: #f5f5f5;
+}
+
+.order-history-table a {
+    text-decoration: none;
+    color: #000;
+    font-weight: bold;
+}
+
+.order-history-table a:hover {
+    text-decoration: underline;
+}
+
+.order-status-placed { color: #333; font-weight: bold; }
+.order-status-shipped { color: #0066cc; font-weight: bold; }
+.order-status-delivered { color: #008000; font-weight: bold; }
+.order-status-cancelled { color: #ff0000; font-weight: bold; }

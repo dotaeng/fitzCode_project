@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            padding: 20px;
+            background-color: #ffffff;
+            width: 100%;
+        }
+        .header-line {
+            border-top: 5px solid #2f2f32;
+            margin-bottom: 20px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2f2f32;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .content {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .code-box {
+            text-align: center;
+            margin: 50px auto;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: block;
+            width: 250px;
+            height: 30px;
+            line-height: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header-line"></div>
+    <div class="logo">fitzCode</div>
+    <h1 class="title">회원가입 메일 인증</h1>
+    <div class="content">
+        안녕하세요<br>
+        fitzCode를 이용해 주셔서 진심으로 감사드립니다.<br>
+        아래 '인증 코드'를 회원가입 페이지에 입력하여 회원가입을 완료해 주세요.<br>
+        감사합니다.
+    </div>
+    <div class="code-box" th:text="${authNum}">인증코드</div>
+</div>
+</body>
+</html>

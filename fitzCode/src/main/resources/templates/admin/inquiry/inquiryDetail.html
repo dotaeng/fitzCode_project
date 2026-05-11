@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <link rel="stylesheet" th:href="@{/css/admin/inquiryDetail.css}"/>
+  <script>
+    function showEditForm() {
+      document.getElementById('reply-text').style.display = 'none';
+      document.getElementById('edit-reply-btn').style.display = 'none';
+      document.getElementById('edit-reply-form').style.display = 'block';
+      document.getElementById('edit-btn-container').style.display = 'none';
+    }
+  </script>
+</head>
+<body>
+<div class="container">
+  <div class="sidebar" th:replace="~{fragments/managerSidebar}"></div>
+
+  <div class="content">
+    <h1 class="title">문의 상세 정보</h1>
+
+    <table class="detail-table">
+      <tr>
+        <th class="field-label">제목</th>
+        <td class="field-value" th:text="${inquiry.subject}"></td>
+      </tr>
+      <tr>
+        <th class="field-label">번호</th>
+        <td class="field-value" th:text="${inquiry.inquiryId}"></td>
+      </tr>
+      <tr>
+        <th class="field-label">사용자</th>
+        <td class="field-value">
+          <a th:href="@{/admin/members/{id}(id=${inquiry.userId})}"
+             th:text="${inquiry.userName}"></a>
+        </td>
+      </tr>
+      <tr>
+        <th class="field-label">등록일</th>
+        <td class="field-value" th:text="${#temporals.format(inquiry.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+      </tr>
+      <tr>
+        <th class="field-label">문의 유형</th>
+        <td class="field-value" th:text="${inquiry.category.description}"></td>
+      </tr>
+      <tr th:if="${inquiry.productId != null}">
+        <th class="field-label">상품 정보</th>
+        <td class="field-value">
+          <a th:href="@{/product/detail/{id}(id=${inquiry.productId})}"
+             th:text="${inquiry.productId} + ' - ' + ${inquiry.productName}"></a>
+        </td>
+      </tr>
+      <tr th:if="${inquiry.orderId != null}">
+        <th class="field-label">주문 번호</th>
+        <td class="field-value">
+          <a th:href="@{/admin/orders/{id}(id=${inquiry.orderId})}"
+             th:text="${inquiry.orderId}"></a>
+        </td>
+      </tr>
+      <!-- 첨부 이미지 표시 -->
+      <tr th:if="${inquiry.imageUrls != null and !inquiry.imageUrls.isEmpty()}">
+        <th class="field-label">첨부 이미지</th>
+        <td class="field-value">
+          <div class="image-container">
+            <img th:each="imageUrl : ${inquiry.imageUrls}" th:src="${imageUrl}" alt="첨부 이미지" class="inquiry-image"/>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th class="field-label">문의 상태</th>
+        <td class="field-value status-text" th:text="${inquiry.status.description}"
+            th:classappend="${inquiry.status.name() == 'ANSWERED' ? 'status-answered' : 'status-pending'}"></td>
+      </tr>
+      <tr>
+        <td colspan="2" class="content-text" style="height: 150px;" th:text="${inquiry.content}"></td>
+      </tr>
+    </table>
+
+    <div class="reply-container">
+      <h3>관리자 답변</h3>
+
+      <div th:if="${inquiry.reply != null}">
+        <div id="reply-text" class="reply-box">
+          <p th:text="${inquiry.reply}"></p>
+        </div>
+        <div id="edit-reply-form" class="edit-reply-form" style="display: none;">
+          <form th:action="@{/admin/inquiries/{id}/reply(id=${inquiry.inquiryId})}" method="post">
+            <textarea name="reply" rows="5" cols="50" th:text="${inquiry.reply}"></textarea>
+            <br>
+            <div class="buttons-container">
+              <button type="submit" class="save-reply-btn">저장</button>
+              <a href="/admin/inquiries" class="back-to-list-btn">목록</a>
+            </div>
+          </form>
+        </div>
+        <div id="edit-btn-container" class="edit-btn-container">
+          <button id="edit-reply-btn" class="edit-reply-btn" onclick="showEditForm()">수정</button>
+          <a href="/admin/inquiries" class="back-to-list-btn">목록</a>
+        </div>
+      </div>
+
+      <div th:if="${inquiry.reply == null}">
+        <form th:action="@{/admin/inquiries/{id}/reply(id=${inquiry.inquiryId})}" method="post">
+          <textarea name="reply" rows="5" cols="50"></textarea>
+          <br>
+          <div class="buttons-container">
+            <button type="submit" class="save-reply-btn">답변 등록</button>
+            <a href="/admin/inquiries" class="back-to-list-btn">목록</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

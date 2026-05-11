@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.fitzcode.admin.mapper.OrderMapper">
+
+    <!-- OrderDetailDTO에 대한 ResultMap 정의 -->
+    <resultMap id="OrderDetailResultMap" type="OrderDetailDTO">
+        <id property="orderId" column="order_id" javaType="java.lang.Long"/>
+        <result property="orderDate" column="order_date" javaType="java.time.LocalDateTime"/>
+        <result property="userName" column="user_name" javaType="java.lang.String"/>
+        <result property="quantity" column="quantity" javaType="java.lang.Integer"/>
+        <result property="totalAmount" column="total_amount" javaType="java.lang.Integer"/>
+        <result property="orderStatus" column="order_status" javaType="java.lang.String"/>
+    </resultMap>
+
+    <!-- 해당 상품의 구매 내역을 페이지 단위로 조회 -->
+    <select id="findOrderDetailsByProductIdWithPagination"
+            resultMap="OrderDetailResultMap">
+        SELECT
+        o.order_id AS order_id,
+        o.created_at AS order_date,
+        u.user_name AS user_name,
+        od.quantity AS quantity,
+        stl.amount AS total_amount,
+        CASE o.order_status
+        WHEN 1 THEN 'PLACED'
+        WHEN 2 THEN 'SHIPPED'
+        WHEN 3 THEN 'DELIVERED'
+        WHEN 4 THEN 'CANCELLED'
+        ELSE 'UNKNOWN'
+        END AS order_status
+        FROM ORDERS o
+        JOIN ORDER_DETAIL od ON o.order_id = od.order_id
+        JOIN SALES_TRANSACTION_LOG stl ON od.order_detail_id = stl.order_detail_id AND stl.transaction_type = 1
+        JOIN USER u ON o.user_id = u.user_id
+        WHERE od.product_id = #{productId}
+        ORDER BY o.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 해당 상품의 전체 구매 내역 수 조회 -->
+    <select id="countOrderDetailsByProductId"
+            resultType="int"
+            parameterType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM ORDERS o
+        JOIN ORDER_DETAIL od ON o.order_id = od.order_id
+        JOIN SALES_TRANSACTION_LOG stl ON od.order_detail_id = stl.order_detail_id AND stl.transaction_type = 1
+        JOIN USER u ON o.user_id = u.user_id
+        WHERE od.product_id = #{productId}
+    </select>
+
+</mapper>

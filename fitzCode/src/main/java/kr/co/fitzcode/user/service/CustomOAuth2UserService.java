@@ -1,0 +1,114 @@
+package kr.co.fitzcode.user.service;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import kr.co.fitzcode.common.dto.CustomOAuth2User;
+import kr.co.fitzcode.common.dto.KakaoResponse;
+import kr.co.fitzcode.common.dto.NaverResponse;
+import kr.co.fitzcode.common.dto.UserDTO;
+import kr.co.fitzcode.common.enums.UserRole;
+import kr.co.fitzcode.user.mapper.UserMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+
+    private final UserMapper userMapper;
+    private final HttpServletRequest request;
+
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2User oAuth2User = super.loadUser(userRequest);
+
+        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!OAuth Attributes : {}", oAuth2User.getAttributes());
+
+        String registerId = userRequest.getClientRegistration().getRegistrationId();
+        log.info("registerId {}", registerId);
+
+        HttpSession session = request.getSession();
+
+        OAuth2Response oAuth2Response;
+        String providerUserId;
+        String userBirth;
+
+        if (registerId.equals("naver")) {
+            oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
+        } else if (registerId.equals("kakao")) {
+            oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
+        } else {
+            return null;
+        }
+
+        providerUserId = oAuth2Response.getProvider() + "_" + oAuth2Response.getProviderId();
+        userBirth = oAuth2Response.getBirthyear() + "-" + oAuth2Response.getBirthday();
+
+
+
+        int dbUserId;
+        List<String> roles;
+
+        UserDTO user;
+        UserDTO oauthUser = userMapper.findByPhoneNumber(oAuth2Response.getPhoneNumber());
+
+        if (oauthUser != null) {
+                if (registerId.equals("naver") && oauthUser.getNaverId() == null) {
+                    throw new OAuth2AuthenticationException("이미 다른 소셜 계정(또는 일반)으로 가입된 회원입니다.");
+                } else if (registerId.equals("kakao") && oauthUser.getKakaoId() == null) {
+                    throw new OAuth2AuthenticationException("이미 다른 소셜 계정(또는 일반)으로 가입된 회원입니다.");
+                }
+                dbUserId = oauthUser.getUserId();
+                user = oauthUser;
+            } else {
+                UserDTO newUser = new UserDTO();
+                if (registerId.equals("naver")) {
+                    newUser.setNaverId(providerUserId);
+                } else if (registerId.equals("kakao")) {
+                    newUser.setKakaoId(providerUserId);
+                }
+
+//            String rawName = oAuth2Response.getuserName();  // 소셜에서 받아온 이름
+//            String nickname = rawName + "_" + (int)(Math.random() * 9000 + 1000); // 이름_4자리랜덤숫자
+
+            newUser.setUserName(oAuth2Response.getuserName());
+//            newUser.setNickname(nickname);
+            newUser.setNickname(oAuth2Response.getNickname());
+            newUser.setEmail(oAuth2Response.getEmail());
+            newUser.setPhoneNumber(oAuth2Response.getPhoneNumber());
+            newUser.setBirthDate(userBirth);
+            newUser.setProfileImage(oAuth2Response.getProfileImageUrl());
+            newUser.setRoleId(UserRole.USER.getCode()); // 기본값: 1
+
+            userMapper.insertUser(newUser);
+            userMapper.insertUserTier(newUser);
+
+            user = userMapper.findByPhoneNumber(newUser.getPhoneNumber());
+            dbUserId = user.getUserId();
+        }
+
+        // 권한 설정 처리
+        List<Integer> roleIds = userMapper.getUserRolesByUserId(dbUserId);
+        if (roleIds != null && !roleIds.isEmpty()) {
+            roles = roleIds.stream()
+                    .map(roleId -> UserRole.fromCode(roleId).getRoleName())
+                    .collect(Collectors.toList());
+        } else {
+            roles = Collections.singletonList(UserRole.USER.getRoleName());
+        }
+
+        session.setAttribute("dto", user);
+        log.info("CustomOAuth2User with userId={}, roles={}", dbUserId, roles);
+        return new CustomOAuth2User(oAuth2Response, roles, dbUserId);
+    }
+}

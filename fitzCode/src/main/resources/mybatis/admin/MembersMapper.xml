@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.fitzcode.admin.mapper.MembersMapper">
+
+    <!-- 회원의 상세 정보를 조회 -->
+    <select id="getMemberDetail" resultType="MemberDetailDTO">
+        SELECT u.*, t.tier_level, t.total_spent, t.tier_updated_at
+        FROM USER u
+        LEFT JOIN USER_TIER t ON u.user_id = t.user_id
+        WHERE u.user_id = #{userId}
+    </select>
+
+    <!-- 사용자의 기본 주소 조회 -->
+    <select id="getDefaultAddress" resultType="AddressDTO">
+        SELECT address_line1, address_line2, postal_code
+        FROM ADDRESS
+        WHERE user_id = #{userId} AND is_default = true
+        LIMIT 1
+    </select>
+
+    <!-- 사용자의 기본 계좌 정보 조회 -->
+    <select id="getDefaultAccount" resultType="AccountDTO">
+        SELECT bank_name, account_number, account_holder
+        FROM USER_ACCOUNT
+        WHERE user_id = #{userId} AND is_default = true
+        LIMIT 1
+    </select>
+
+    <!-- 사용자의 주문 내역 최신순 조회 -->
+    <select id="getOrdersByUser" resultType="OrderDTO">
+        SELECT order_id, created_at, order_status
+        FROM ORDERS
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 사용자의 총 구매 금액 계산 -->
+    <select id="getTotalSpent" resultType="int">
+        SELECT COALESCE(SUM(total_price), 0)
+        FROM ORDERS
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 모든 회원 목록 최근 가입순으로 페이징하여 조회 -->
+    <select id="getAllMembers" resultType="MemberDTO">
+        SELECT u.user_id, u.user_name, u.email, u.created_at, u.role_id, t.tier_level
+        FROM USER u
+        LEFT JOIN USER_TIER t ON u.user_id = t.user_id
+        ORDER BY u.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 전체 회원 수 계산 -->
+    <select id="getTotalMemberCount" resultType="int">
+        SELECT COUNT(*) FROM USER
+    </select>
+
+    <!-- 회원 삭제 -->
+    <delete id="deleteMember">
+        DELETE FROM USER WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 회원 등급 업데이트 -->
+    <update id="updateUserTier">
+        UPDATE USER_TIER SET tier_level = #{tierLevel}, tier_updated_at = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 필터링된 회원 목록을 정렬 기준에 따라 페이징하여 조회 + 검색기능 -->
+    <select id="getFilteredMemberList" resultType="MemberDTO">
+        SELECT u.user_id, u.user_name, u.email, u.created_at, u.role_id,
+        COALESCE(t.tier_level, 1) AS tier_level
+        FROM USER u
+        LEFT JOIN USER_TIER t ON u.user_id = t.user_id
+        <where>
+            <if test="roleId != null">
+                AND u.role_id = #{roleId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (u.user_name LIKE CONCAT('%', #{keyword}, '%')
+                OR u.email LIKE CONCAT('%', #{keyword}, '%')
+                OR u.nickname LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        <choose>
+            <when test="sortOrder == 'recent'">
+                ORDER BY u.created_at DESC
+            </when>
+            <when test="sortOrder == 'oldest'">
+                ORDER BY u.created_at ASC
+            </when>
+            <when test="sortOrder == 'role'">
+                ORDER BY COALESCE(t.tier_level, 1) DESC, u.created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY u.created_at DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 필터링된 회원 수 계산 + 검색기능 -->
+    <select id="getTotalFilteredMemberCount" resultType="int">
+        SELECT COUNT(*)
+        FROM USER u
+        <where>
+            <if test="roleId != null">
+                AND u.role_id = #{roleId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (u.user_name LIKE CONCAT('%', #{keyword}, '%')
+                OR u.email LIKE CONCAT('%', #{keyword}, '%')
+                OR u.nickname LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+</mapper>

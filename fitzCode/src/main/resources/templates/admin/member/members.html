@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <link rel="stylesheet" th:href="@{/css/admin/managerSidebar.css}">
+  <link rel="stylesheet" th:href="@{/css/admin/members.css}">
+</head>
+<body>
+
+<div class="wrapper">
+  <!-- 사이드바 -->
+  <div class="adminSidebarWrap">
+    <div class="sidebar" th:replace="~{fragments/managerSidebar :: sidebar}"></div>
+  </div>
+
+  <!-- 회원 목록 -->
+  <div class="member-list-container">
+    <h2><a href="/admin/members" style="text-decoration: none; color: #2f2f32;">회원 목록</a></h2>
+
+    <!-- 필터링 및 검색 기능 -->
+    <div class="filters">
+      <select id="sortFilter">
+        <option value="recent" th:selected="${sortOrder == 'recent'}">최근 가입순</option>
+        <option value="oldest" th:selected="${sortOrder == 'oldest'}">가입 오래된 순</option>
+        <option value="role" th:selected="${sortOrder == 'role'}">회원등급순</option>
+      </select>
+
+      <select id="roleFilter">
+        <option value="">역할분류</option>
+        <option value="1" th:selected="${role == 1}">사용자</option>
+        <option value="2" th:selected="${role == 2}">관리자</option>
+        <option value="3" th:selected="${role == 3}">물류담당자</option>
+        <option value="4" th:selected="${role == 4}">문의담당자</option>
+      </select>
+
+      <input type="text" id="searchKeyword" placeholder="이름, 이메일, 닉네임 검색">
+      <button onclick="filterMembers()">검색</button>
+    </div>
+    <br>
+
+    <div class="member-list">
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>이름</th>
+          <th>이메일</th>
+          <th>가입일</th>
+          <th>관리</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="member : ${members}" class="member-row" th:data-id="${member.userId}" style="user-select: none; cursor: pointer;">
+          <td th:text="${member.userId}"></td>
+          <td th:text="${member.userName}"></td>
+          <td th:text="${member.email}"></td>
+          <td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd')}"></td>
+          <td class="actions">
+            <form th:action="@{/admin/members/{id}/delete(id=${member.userId})}" method="post" style="display:inline;" onsubmit="return confirm('삭제하시겠습니까?')">
+              <button type="submit">삭제</button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div class="pagination" th:if="${totalCount > 0}">
+      <span th:with="totalPages=${(totalCount + pageSize - 1) / pageSize}">
+        <!-- 이전 버튼 -->
+        <a th:if="${currentPage > 1}"
+           th:href="@{/admin/members(page=${currentPage - 1}, sortOrder=${sortOrder}, role=${role}, keyword=${keyword})}"
+           class="prev"><</a>
+
+        <!-- 페이지 번호 -->
+        <span th:each="i : ${#numbers.sequence(1, totalPages)}">
+          <a th:href="@{/admin/members(page=${i}, sortOrder=${sortOrder}, role=${role}, keyword=${keyword})}"
+             th:text="${i}"
+             th:classappend="${currentPage == i} ? 'active' : ''"
+             class="page-btn"></a>
+        </span>
+
+        <!-- 다음 버튼 -->
+        <a th:if="${currentPage < totalPages}"
+           th:href="@{/admin/members(page=${currentPage + 1}, sortOrder=${sortOrder}, role=${role}, keyword=${keyword})}"
+           class="next">></a>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- members.js -->
+<script th:src="@{/js/admin/members.js}"></script>
+
+</body>
+</html>

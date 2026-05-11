@@ -1,0 +1,145 @@
+.wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.adminSidebarWrap {
+    width: 250px;
+    flex-shrink: 0;
+}
+
+.sidebar {
+    position: fixed;
+    width: 250px;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.member-list-container {
+    flex-grow: 1;
+    padding: 20px;
+    max-width: 1000px;
+    margin: 30px auto 100px auto;
+    font-family: 'Apple SD Gothic Neo', sans-serif;
+    line-height: 1.6;
+    padding-left: 50px;
+}
+
+.member-list table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.member-list th, .member-list td {
+    padding: 10px;
+    border: 1px solid #e1e1e1;
+    text-align: left;
+}
+
+.member-list th {
+    background-color: #2f2f32;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+}
+
+.member-list tr {
+    cursor: pointer;
+}
+
+.member-list tr:hover {
+    background-color: #f1f1f1;
+}
+
+.member-list .actions {
+    white-space: nowrap;
+}
+
+.member-list form {
+    display: inline-block;
+    margin: 0;
+}
+
+.member-list button {
+    padding: 5px 10px;
+    text-decoration: none;
+    color: white;
+    background-color: #2f2f32;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.member-list button:hover {
+    opacity: 0.8;
+}
+
+.pagination {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.pagination a {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 0 5px;
+    text-decoration: none;
+    color: #333;
+}
+
+.pagination a:hover {
+    color: #59758c;
+}
+
+.pagination a.active {
+    font-weight: bold;
+    background-color: rgba(237, 237, 237, 0.89);
+}
+
+.pagination .prev, .pagination .next {
+    font-size: 18px;
+}
+
+.filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filters select, .filters input[type="text"] {
+    padding: 8px;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.filters select {
+    width: 120px;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.filters input[type="text"] {
+    width: 200px;
+    flex-grow: 0;
+}
+
+.filters button {
+    padding: 8px 16px;
+    background-color: #2f2f32;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.filters button:hover {
+    opacity: 0.8;
+}

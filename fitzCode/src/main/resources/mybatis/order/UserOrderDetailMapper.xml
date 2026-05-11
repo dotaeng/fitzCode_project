@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.fitzcode.order.mapper.UserOrderDetailMapper">
+
+    <insert id="batchInsertOrderDetails">
+        INSERT INTO ORDER_DETAIL (order_id, product_id, quantity, price, size_code, coupon_id)
+        VALUES
+        <foreach collection="orderDetails" item="item" separator=",">
+            (#{item.orderId}, #{item.productId}, #{item.quantity}, #{item.price}, #{item.sizeCode},
+            <if test="item.couponId != null">#{item.couponId}</if>
+            <if test="item.couponId == null">NULL</if>)
+        </foreach>
+    </insert>
+
+    <select id="getOrderDetailByOrderId" resultType="kr.co.fitzcode.common.dto.UserOrderDetailDTO">
+        SELECT od.order_detail_id, od.order_id, od.product_id, od.quantity, od.price,
+        od.coupon_id, od.refund_status, od.size_code, p.image_url, p.product_name
+        FROM ORDER_DETAIL od
+        JOIN PRODUCT p ON od.product_id = p.product_id
+        JOIN ORDERS o ON o.order_id = od.order_id
+        WHERE od.order_id = #{orderId}
+    </select>
+
+    <select id="getOrderDetailByUserId" resultType="kr.co.fitzcode.common.dto.UserOrderDetailDTO">
+        SELECT od.order_detail_id, od.order_id, od.product_id, od.quantity, od.price,
+        od.coupon_id, od.refund_status, od.size_code, p.image_url, p.product_name, o.created_at
+        FROM ORDER_DETAIL od
+        JOIN PRODUCT p ON od.product_id = p.product_id
+        JOIN ORDERS o ON o.order_id = od.order_id
+        WHERE o.user_id = #{userId}
+        ORDER BY o.created_at DESC;
+    </select>
+
+    <update id="updateRequestRefundStatus">
+        update ORDER_DETAIL set refund_status = 1 where order_detail_id = #{orderDetailId}
+    </update>
+
+    <update id="decrementProductCountInProductSize">
+        update PRODUCT_SIZE set stock = stock - 1
+        where product_id = #{productId}
+        and size_code = #{sizeCode}
+    </update>
+
+    <update id="decrementProductCountInProduct">
+        update PRODUCT set stock = stock - 1
+        where product_id = #{productId}
+    </update>
+</mapper>

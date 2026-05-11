@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <link rel="stylesheet" th:href="@{/css/admin/managerSidebar.css}">
+  <link rel="stylesheet" th:href="@{/css/admin/memberDetail.css}">
+
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="adminSidebarWrap">
+    <div class="sidebar" th:replace="~{fragments/managerSidebar :: sidebar}"></div>
+  </div>
+
+  <div class="member-container">
+    <h2>회원 상세 정보</h2>
+    <div class="member-details">
+      <table>
+        <tr><th>ID</th><td th:text="${member.userId}"></td></tr>
+        <tr><th>이름</th><td th:text="${member.userName}"></td></tr>
+        <tr><th>닉네임</th><td th:text="${member.nickname}"></td></tr>
+        <tr><th>이메일</th><td th:text="${member.email}"></td></tr>
+        <tr><th>전화번호</th><td th:text="${member.phoneNumber}"></td></tr>
+        <tr><th>생년월일</th><td th:text="${member.birthDate}"></td></tr>
+        <tr><th>가입일</th><td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd HH:mm')}"></td></tr>
+        <tr><th>등급</th><td th:text="${tierName}"></td></tr>
+        <tr><th>할인율</th><td th:text="|${discountRate}%|"></td></tr>
+        <tr th:if="${member.defaultAddress != null}">
+          <th>기본 주소</th>
+          <td th:text="${member.defaultAddress.addressLine1 + (member.defaultAddress.addressLine2 != null ? ', ' + member.defaultAddress.addressLine2 : '') + ' (' + member.defaultAddress.postalCode + ')'}"></td>
+        </tr>
+        <tr th:if="${member.defaultAccount != null}">
+          <th>기본 계좌</th>
+          <td th:text="${member.defaultAccount.bankName + ' ' + member.defaultAccount.accountNumber + ' (' + member.defaultAccount.accountHolder + ')'}"></td>
+        </tr>
+        <tr>
+          <th>총 구매 금액</th>
+          <td th:text="${#numbers.formatInteger(member.totalSpent, 3, 'COMMA')} + '원'"></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="tier-form">
+      <form th:action="@{/admin/members/{id}/tier(id=${member.userId})}" method="post">
+        <select name="tierLevel">
+          <option value="1" th:selected="${member.tierLevel == 1}">BRONZE</option>
+          <option value="2" th:selected="${member.tierLevel == 2}">SILVER</option>
+          <option value="3" th:selected="${member.tierLevel == 3}">GOLD</option>
+          <option value="4" th:selected="${member.tierLevel == 4}">PLATINUM</option>
+        </select>
+        <button type="submit">변경</button>
+      </form>
+      <a href="/admin/members">목록</a>
+    </div>
+
+    <div class="order-history">
+      <h3 th:onclick="'toggleOrderHistory(' + ${member.userId} + ')'">주문 내역 보기 ></h3>
+      <table class="order-history-table" id="orderHistoryTable">
+        <thead>
+        <tr>
+          <th>주문 번호</th>
+          <th>주문 날짜</th>
+          <th>주문 상태</th>
+        </tr>
+        </thead>
+        <tbody id="orderList">
+
+        <!-- 비동기 주문 내역 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- memberDetail.js -->
+<script th:src="@{/js/admin/memberDetail.js}"></script>
+
+</body>
+</html>

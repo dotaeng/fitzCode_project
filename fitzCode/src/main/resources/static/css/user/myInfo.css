@@ -1,0 +1,193 @@
+
+.myInfo {
+    display: flex;
+    padding: 20px;
+    flex-direction: column;
+    font-size: 13.3px;
+    margin-top: 10px;
+}
+
+/*여기까지 공통*/
+
+.userProfileInfo {
+    display: flex;
+    justify-content: space-between;
+    border: 1px solid #2f2f32;
+    padding: 20px;
+    border-radius: 28px;
+    margin: 10px 0px 25px 0px;
+}
+
+#profileImage {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#profileImage img {
+    width: 80px;
+    height: 80px;
+    border-radius: 70px;
+    padding: 0px;
+}
+
+#profileInfo {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#profileInfo div {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column-reverse;
+}
+
+.userTier {
+    text-decoration: underline;
+    color: #2f2f32;
+    border-radius: 10px;
+}
+
+#updateProfileLink {
+    display: flex;
+    flex-direction: column;
+    padding-left: 10px;
+    justify-content: center;
+}
+
+#updateProfileLink a {
+    color: #2f2f32;
+    padding: 12px;
+    border-radius: 28px;
+}
+
+#trackingInfo {
+    border: 1px solid #2f2f32;
+    padding: 20px 50px;
+    border-radius: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#trackingInfo h3 {
+    margin-bottom: 30px;
+    font-size: 20px;
+    align-self: flex-start;
+}
+
+table {
+    width: 80%;
+    border-collapse: collapse;
+}
+
+tr {
+    border-bottom: 1px solid lightgray;
+}
+
+th {
+    padding: 10px;
+    font-size: 14.5px;
+}
+
+td {
+    text-align: center;
+    padding: 10px;
+}
+
+td button {
+    text-decoration: none;
+    color: #2f2f32;
+    border-radius: 17px;
+    border: 1px solid #2f2f32;
+    padding: 8px;
+    background: white;
+}
+
+/*모달관련*/
+.searchTracking {
+    background-color: white;
+    border: #ddd 1px solid;
+    padding: 5px 8px;
+    border-radius: 15px;
+    color: gray;
+}
+
+#modalContainer {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+#modalContainer.hidden {
+    display: none;
+}
+
+#modalContent {
+    background-color: #ffffff;
+    width: 480px;
+    height: 450px;
+    padding: 15px;
+    margin-top: 100px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modalCloseBtn {
+    position: absolute;
+    top: 10px;
+    cursor: pointer;
+    right: 16px;
+    background: transparent;
+    font-size: 20px;
+}
+
+#msg {
+    color: red;
+    margin-top: 25px;
+}
+
+#trackingData {
+    border: 1px solid #ddd;
+    border-collapse: collapse;
+    font-size: 13.3px;
+}
+
+#trackingData td,
+#trackingData th {
+    border: 1px solid #ddd;
+}
+
+#deliveryCompany {
+    display: inline-block;
+    margin-bottom: 16px;
+}
+
+#close-search {
+    position: relative;
+    margin: 15px 0px 20px 0px;
+    padding: 10px;
+    border-radius: 16px;
+    font-size: 14px;
+    width: 60px;
+    background: #2f2f32;
+    border: 1px #2f2f32;
+    color: white;
+}

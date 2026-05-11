@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      xmlns:sec="http://www.springframework.org/schema/security">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <th:block th:replace="~{fragments/header :: header-head}"></th:block>
+    <th:block th:replace="~{fragments/footer :: footer-head}"></th:block>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" th:href="@{/css/order/orderDetail.css}">
+</head>
+
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<br><br><br><br>
+<div class="mypageContainer">
+    <!-- navi -->
+    <div th:replace="~{fragments/mypageNavi}"></div>
+
+    <div class="mypageContent">
+        <h2>주문 상세</h2>
+        <div id="hr"></div>
+        <div class="orderList">
+            <div class="orderInfoBox">
+                <p><span th:text="${orderDTO.formattedCreatedAt}" class="subTitle"/></p>
+                <p><span th:text="'주문번호 ' + ${orderDTO.orderId}" class="orderInfoData"></span></p>
+            </div>
+            <div class="orderInfoBox">
+                <p><strong>받는 곳</strong><span id="addressInfo" th:text="${orderDTO.addressId}" class="orderInfo"></span>
+                </p>
+                <p><strong>총 결제 금액</strong><span th:text="${orderDTO.formattedTotalPrice}" class="orderInfo"></span></p>
+                <p><strong>주문 상태</strong><span th:text="${orderDTO.orderStatusTranslated}" class="orderInfo"></span></p>
+            </div>
+            <table border="1">
+                <tbody>
+                <tr th:each="detail : ${orderDetailList}">
+                    <td><img th:src="${detail.imageUrl}" alt="Product Image" id="productImages"></td>
+                    <td style="width: 280px; text-align: justify">
+                        <div id="orderDetailList">
+                            <h4 th:text="${detail.productName}"></h4>
+                            <div th:text="${detail.formattedSizeCode} + ' / ' + ${detail.quantity} + '개'"></div>
+                        </div>
+                    </td>
+                    <td th:text="${detail.formattedPrice} + '원'"></td>
+                </tr>
+                </tbody>
+            </table>
+            <div id="toOrderList">
+                <a th:href="@{/orders}" style="color: #686868;">목록으로</a>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+<br><br><br><br>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+<script>
+    let addressId = [[${orderDTO.addressId}]];
+    console.log(addressId);
+
+    document.addEventListener("DOMContentLoaded", function () {
+        getUserAddressByAddressId();
+    });
+
+
+    function getUserAddressByAddressId() {
+        console.log("getting user address");
+        $.ajax({
+            url: "/api/order/getUserAddressByAddressId",
+            type: "GET",
+            dataType: "json",
+            data: {addressId: addressId},
+            success: function (response) {
+                $("#addressInfo").html(response.addressLine1 + " " + response.postalCode);
+            },
+            error: function () {
+                $("#addressInfo").html("<p>주소를 불러올 수 없습니다.</p>");
+            }
+        });
+    }
+
+</script>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</html>

@@ -1,0 +1,56 @@
+.userProfileInfo{
+    display: flex
+;
+    justify-content: space-between;
+    border: 1px solid #2f2f32;
+    padding: 20px;
+    border-radius: 28px;
+    margin: 10px 0px 25px 0px;
+    align-items: flex-end;
+}
+.button {
+    background: white;
+    border: 1px;
+    text-decoration: underline;
+    color: #2f2f32;
+    align-self: end;
+}
+
+
+.updateProfileInfo {
+    border: 1px #9d9d9d solid;
+    padding: 10px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 10px 0px;
+}
+
+
+#updateProfile {
+    width: 60%;
+    display: flex;
+    justify-content: flex-start;
+}
+
+#updateProfileDiv {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+
+h4 {
+    padding-right: 10px;
+    margin-right: 10px;
+    border-right: 2px solid;
+}
+
+input {
+    border: 0px;
+}
+
+input[type=text]:focus {
+    border-bottom: 1px solid #2f2f32;
+}

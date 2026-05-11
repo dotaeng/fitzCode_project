@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.fitzcode.user.mapper.MypageMapper">
+
+    <resultMap id="OrderDTOMap" type="kr.co.fitzcode.common.dto.OrderDTO">
+        <result property="orderId" column="order_id"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="orderStatus" column="order_status"/>
+        <result property="addressId" column="address_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="totalPrice" column="total_price"/>
+        <result property="trackingNumber" column="tracking_number"/>
+        <result property="deliveryStatus" column="delivery_status"/>
+        <result property="shippedAt" column="shipped_at"/>
+        <result property="deliveredAt" column="delivered_at"/>
+    </resultMap>
+
+
+    <!-- 사용자 정보 -->
+    <select id="getMyInfo" parameterType="int" resultType="UserDTO">
+        SELECT
+        u.user_id,
+        u.user_name,
+        u.password,
+        u.email,
+        u.nickname,
+        u.phone_number,
+        u.profile_image,
+        ut.tier_level
+        FROM USER u
+        LEFT JOIN USER_TIER ut ON (ut.user_id = u.user_id)
+        WHERE u.user_id = #{userId}
+    </select>
+
+    <!-- 구매내역 & 운송장 정보 -->
+    <select id="getMypageOrderList" parameterType="int" resultType="kr.co.fitzcode.common.dto.OrderDTO">
+        SELECT
+        o.order_id AS order_id,
+        o.created_at AS created_at,
+        o.order_status AS order_status,
+        o.address_id AS address_id,
+        o.user_id AS user_id,
+        o.total_price AS total_price,
+        d.tracking_number AS tracking_number,
+        d.delivery_status AS delivery_status,
+        d.shipped_at AS shipped_at,
+        d.delivered_at AS delivered_at
+        FROM ORDERS o
+        LEFT JOIN DELIVERY d ON (o.order_id = d.order_id)
+        WHERE o.user_id = #{userId}
+    </select>
+
+
+    <!-- 사용자 계좌 정보 -->
+    <select id="getUserAccount" parameterType="int" resultType="AccountDTO">
+        SELECT
+        account_id,
+        user_id,
+        bank_name,
+        account_number,
+        account_holder,
+        is_default
+        FROM USER_ACCOUNT
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 계좌 추가 -->
+    <insert id="insertAccountData" parameterType="AccountDTO">
+        INSERT INTO USER_ACCOUNT
+        (user_id, bank_name, account_number, account_holder, is_default)
+        VALUES (#{accountDTO.userId}, #{accountDTO.bankName}, #{accountDTO.accountNumber}, #{accountDTO.accountHolder},
+        #{accountDTO.isDefault})
+    </insert>
+
+    <!-- 계좌 삭제 -->
+    <delete id="deleteAccount" parameterType="int">
+        DELETE
+        FROM USER_ACCOUNT
+        WHERE account_id = #{accountId};
+    </delete>
+
+    <!-- 사용자 쿠폰 정보 -->
+    <select id="getUserCoupon" parameterType="int" resultType="CouponDTO">
+        SELECT
+        c.coupon_code,
+        c.description,
+        c.discount_amount,
+        c.discount_percentage,
+        c.minimum_order_amount,
+        uc.valid_until
+        FROM COUPON c
+        JOIN fitzCode.USER_COUPON uc
+        on c.coupon_id = uc.coupon_id
+        WHERE uc.user_id = #{userId}
+        AND uc.is_used = 0
+    </select>
+
+    <!-- 회원정보 업데이트 -->
+    <update id="updateUserInfo" parameterType="UserDTO">
+        UPDATE USER
+        SET
+        email = #{userDTO.email},
+        password = #{userDTO.password},
+        phone_number = #{userDTO.phoneNumber}
+        WHERE user_id = #{userDTO.userId};
+    </update>
+
+
+    <!-- 프로필 이미지 가져오기 -->
+    <select id="getProfileUrl" parameterType="int" resultType="String">
+        SELECT
+        profile_image
+        FROM USER
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 프로필 수정 -->
+    <update id="updateProfile" parameterType="UserDTO">
+        UPDATE USER
+        SET
+        nickname = #{userDTO.nickname},
+        profile_image = #{userDTO.profileImage}
+        WHERE user_id = #{userDTO.userId};
+    </update>
+
+    <!-- 사용자 인증 -->
+    <select id="verifyUser" parameterType="UserDTO" resultType="UserDTO">
+        SELECT
+        email,
+        password,
+        phone_number
+        FROM USER
+        WHERE email = #{userDTO.email} AND password = #{userDTO.password}
+    </select>
+
+
+</mapper>

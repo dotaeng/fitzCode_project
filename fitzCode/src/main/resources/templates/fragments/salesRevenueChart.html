@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div th:fragment="salesRevenueChart">
+  <canvas id="salesRevenueChart" width="400" height="200"></canvas>
+
+  <script th:inline="javascript">
+    const revenueData = /*[[${revenueData}]]*/ [];
+    const volumeData = /*[[${volumeData}]]*/ [];
+    const labels = /*[[${labels}]]*/ [];
+
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Revenue',
+          data: revenueData,
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+          order: 1,
+          type: 'bar',
+          yAxisID: 'y-axis-revenue'
+        },
+        {
+          label: 'Sales Count',
+          data: volumeData,
+          borderColor: 'rgb(54, 162, 235)',
+          backgroundColor: 'rgba(54, 162, 235, 0.5)',
+          type: 'line',
+          order: 0,
+          yAxisID: 'y-axis-count'
+        }
+      ]
+    };
+
+    const config = {
+      type: 'bar',
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: {
+            display: true,
+            text: '최근 한달 매출현황',
+            font: {
+              size: 25,
+              weight: 'bold'
+            },
+            padding: {
+              top: 10,
+              bottom: 20,
+              left: -50 // 왼쪽 여백을 음수로 설정해 오른쪽으로 20px 이동 효과
+            }
+          }
+        },
+        scales: {
+          'y-axis-revenue': {
+            type: 'linear',
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Amount (Revenue)'
+            },
+            beginAtZero: true
+          },
+          'y-axis-count': {
+            type: 'linear',
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Count (Sales)'
+            },
+            beginAtZero: true,
+            ticks: {
+              stepSize: 3,
+              max: 24
+            },
+            grid: {
+              drawOnChartArea: false
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Days'
+            }
+          }
+        }
+      }
+    };
+
+    const salesRevenueChart = new Chart(document.getElementById('salesRevenueChart'), config);
+  </script>
+</div>
+</body>
+</html>

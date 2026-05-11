@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.fitzcode.user.mapper.UserMapper">
+    <insert id="insertUser" parameterType="UserDTO" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO USER (user_name, nickname, email, password, phone_number, birth_date, kakao_id, naver_id, profile_image, role_id)
+        VALUES (#{userName}, #{nickname}, #{email}, #{password}, #{phoneNumber}, #{birthDate}, #{kakaoId}, #{naverId}, #{profileImage}, #{roleId})
+    </insert>
+
+<!--    <insert id="insertUserTier">-->
+<!--        INSERT INTO USER_TIER (user_id, tier_level, total_spent)-->
+<!--        SELECT user_id, 1, 0 FROM USER WHERE nickname = #{nickname}-->
+<!--    </insert>-->
+
+    <insert id="insertUserTier" parameterType="UserDTO">
+        INSERT INTO USER_TIER (user_id, tier_level, total_spent)
+        VALUES (#{userId}, 1, 0)
+    </insert>
+
+    <select id="emailDuplicate" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM USER WHERE email = #{email}
+    </select>
+
+    <select id="nicknameDuplicate" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM USER WHERE nickname = #{nickname}
+    </select>
+
+    <select id="phoneNumberDuplicate" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM USER WHERE phone_number = #{phoneNumber}
+    </select>
+
+    <update id="updatePw" parameterType="UserDTO">
+        UPDATE USER
+        SET password = #{password}
+        WHERE email = #{email}
+    </update>
+
+    <select id="findByEmail" parameterType="String" resultType="UserDTO">
+        SELECT * FROM USER WHERE email = #{email}
+    </select>
+
+    <!-- CommonUserController 에서 사용 -->
+    <select id="getUserByEmail" parameterType="String" resultType="UserDTO">
+        SELECT * FROM USER WHERE email = #{email}
+    </select>
+
+    <!-- 수정: USER_ROLE_MAPPING에서 role_id 조회 -->
+    <select id="getUserRolesByUserId" parameterType="int" resultType="int">
+        SELECT role_id
+        FROM USER_ROLE_MAPPING
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="findByUserNaverId" resultType="UserDTO">
+        SELECT * FROM USER
+        WHERE naver_id = #{naverId}
+    </select>
+
+    <select id="findByUserKakaoId" resultType="UserDTO">
+        SELECT * FROM USER
+        WHERE kakao_id = #{kakaoId}
+    </select>
+
+    <!-- 추가: updateUser 쿼리 -->
+    <update id="updateUser" parameterType="UserDTO">
+        UPDATE USER
+        SET email = #{email}
+        WHERE naver_id = #{naverId}
+    </update>
+
+    <!-- 통합: updateUserNaver와 updateUserKakao -->
+    <update id="updateUserNaver" parameterType="UserDTO">
+        UPDATE USER
+        SET email = #{email}
+        WHERE naver_id = #{naverId}
+    </update>
+
+    <update id="updateUserKakao" parameterType="UserDTO">
+        UPDATE USER
+        SET email = #{email}
+        WHERE kakao_id = #{kakaoId}
+    </update>
+
+    <select id="findEmailByNameAndPhoneNumber" resultType="String">
+        SELECT email FROM USER
+        WHERE user_name = #{userName}
+        AND phone_number = #{phoneNumber}
+    </select>
+
+<!--  수정  -->
+    <select id="findByPhoneNumber" parameterType="String" resultType="UserDTO">
+        SELECT *
+        FROM USER
+        WHERE phone_number = #{phoneNumber}
+    </select>
+
+    <update id="updateUserSocialId" parameterType="UserDTO">
+        UPDATE USER
+        <set>
+            <if test="naverId != null">naver_id = #{naverId},</if>
+            <if test="kakaoId != null">kakao_id = #{kakaoId},</if>
+        </set>
+        WHERE user_id = #{userId}
+    </update>
+
+    <select id="findAllUsers" resultType="UserDTO">
+        SELECT user_id, user_name, nickname, email, password, phone_number, birth_date, kakao_id, naver_id, profile_image, role_id
+        FROM USER
+    </select>
+
+    <!-- 역할 이름 문자열 리스트로 리턴 -->
+    <select id="findRolesInStringByUserId" parameterType="int" resultType="string">
+        SELECT ur2.role_name
+        FROM USER_ROLE_MAPPING ur
+        JOIN USER_ROLE ur2 ON ur.role_id = ur2.role_id
+        WHERE ur.user_id = #{userId}
+    </select>
+</mapper>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      xmlns:sec="http://www.springframework.org/schema/security">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <th:block th:replace="~{fragments/header :: header-head}"></th:block>
+    <th:block th:replace="~{fragments/footer :: footer-head}"></th:block>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" th:href="@{/css/order/allOrders.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+<br><br><br><br>
+<div class="mypageContainer">
+    <div th:replace="~{fragments/mypageNavi}"></div>
+
+    <div class="mypageContent">
+        <h2>구매 내역</h2>
+        <div id="hr"></div>
+        <div th:each="detail : ${groupedOrders}" class="OrderList">
+            <div>
+                <div class="subTitle">
+                <p><span th:text="${detail.formattedCreatedAt}" style="font-size: 17px;
+    font-weight: bold; "></span> </p>
+                    <a th:href="@{/order/{orderId}(orderId=${detail.orderId})}" style="color: #888888">주문 상세</a>
+
+                </div>
+                <table>
+                    <tbody>
+                    <tr>
+                        <td><div class="productImage"><img th:src="${detail.imageUrl}" alt="Product Image" width="100"></div></td>
+                        <td style="width: 280px; text-align: justify">
+                            <div class="orderInfo">
+                                <h4 th:text="${detail.productName}" style="margin: 10px 0px"/>
+                                <div th:text="${detail.formattedSizeCode} +' / ' + ${detail.quantity} +'개'"/>
+                            </div>
+                        </td>
+                        <td th:text="${detail.formattedPrice} + '원'"></td>
+                        <td>
+                            <div class="action-buttons">
+                                <a th:href="@{/review/new/{orderDetailId}(orderDetailId=${detail.orderDetailId})}">
+                                    <button type="button" class="review-button">리뷰 작성</button>
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <th:block th:if="${detail.refundStatus == 0}">
+                                    <button type="button" class="refund-button"
+                                            th:data-order-detail-id="${detail.orderDetailId}"
+                                            onclick="requestRefund(this)">
+                                        환불 요청
+                                    </button>
+                                </th:block>
+                                <th:block th:if="${detail.refundStatus == 1}">
+                                    <button type="button" class="refund-button disabled" disabled>
+                                        환불 요청됨
+                                    </button>
+                                </th:block>
+                                <th:block th:if="${detail.refundStatus == 2}">
+                                    <button type="button" class="refund-button disabled" disabled>
+                                        환불 진행 중
+                                    </button>
+                                </th:block>
+                                <th:block th:if="${detail.refundStatus == 3}">
+                                    <button type="button" class="refund-button disabled" disabled>
+                                        환불 완료
+                                    </button>
+                                </th:block>
+                                <th:block th:if="${detail.refundStatus == 4}">
+                                    <button type="button" class="refund-button disabled" disabled>
+                                        환불 불가
+                                    </button>
+                                </th:block>
+
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<br><br><br><br><br>
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+
+
+<script>
+    function requestRefund(button) {
+        let orderDetailId = $(button).attr("data-order-detail-id");
+        console.log("refund requested");
+        console.log(orderDetailId);
+
+        $.ajax({
+            url: "/api/order/refund",
+            type: "POST",
+            data: {orderDetailId: orderDetailId},
+            success: function (response) {
+                alert("환불 요청이 접수되었습니다");
+                $(button).prop("disabled", true).text("환불 요청됨").addClass("disabled");
+            },
+            error: function (xhr) {
+                alert("Refund request failed: " + xhr.responseText);
+            }
+        });
+    }
+</script>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</html>

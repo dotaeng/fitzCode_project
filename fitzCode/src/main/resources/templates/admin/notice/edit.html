@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      color: #333;
+      display: flex;
+      height: 100vh;
+    }
+
+    .content {
+      flex-grow: 1;
+      padding: 0 40px 40px 40px;
+      max-width: 1200px;
+      margin: 0;
+      margin-left: 50px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      margin-top: 100px;
+    }
+
+    .h3-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin: 0;
+      border-bottom: 2px solid #2f2f32;
+      padding-bottom: 5px;
+      display: inline-block;
+      margin-left: 18px;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    label {
+      font-weight: 500;
+      color: #2c3e50;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .note-editor {
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    .note-btn {
+      background-color: #2f2f32 !important;
+      border-color: #2f2f32 !important;
+      color: white !important;
+    }
+
+    .note-btn:hover {
+      background-color: #2980b9 !important;
+    }
+
+    button[type="submit"] {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #2f2f32;
+      color: white;
+      text-decoration: none;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #2980b9;
+    }
+
+    .button-container {
+      text-align: right;
+    }
+
+    .current-image, .current-attachment {
+      margin-bottom: 20px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .current-image img {
+      max-width: 200px;
+      border-radius: 5px;
+      display: block;
+    }
+
+    .current-attachment a {
+      color: #2f2f32;
+      text-decoration: none;
+    }
+
+    .current-attachment a:hover {
+      text-decoration: underline;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+      z-index: 1;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+      }
+
+      .content {
+        padding: 15px;
+        margin-left: 0;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-top: 20px;
+      }
+
+      .button-container {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar" th:replace="~{fragments/managerSidebar}"></div>
+
+<div class="content">
+  <div class="header">
+    <h3 class="h3-title">공지사항 수정</h3>
+  </div>
+  <form th:action="@{/admin/notice/{id}(id=${notice.noticeId})}" method="post" enctype="multipart/form-data">
+    <div>
+      <label for="title">제목:</label>
+      <input type="text" id="title" name="title" th:value="${notice.title}" required>
+    </div>
+    <div>
+      <label for="content">내용:</label>
+      <textarea id="content" name="content" th:text="${notice.content}" required></textarea>
+    </div>
+    <div>
+      <label for="imageFile">이미지:</label>
+      <div class="current-image" th:if="${notice.imageUrl}" th:id="'current-image-' + ${notice.noticeId}">
+        <img th:src="${notice.imageUrl}" alt="현재 이미지">
+        <button type="button" class="delete-btn" th:data-id="${notice.noticeId}" th:data-type="'image'">X</button>
+      </div>
+      <input type="file" id="imageFile" name="imageFile" accept="image/*">
+    </div>
+    <div>
+      <label for="attachmentFile">첨부 파일 (HWP, XLS, XLSX, DOC, DOCX):</label>
+      <div class="current-attachment" th:if="${notice.attachmentUrl}" th:id="'current-attachment-' + ${notice.noticeId}">
+        <p>현재 첨부 파일: <a th:href="@{/admin/notice/{id}/download(id=${notice.noticeId})}" th:text="${notice.attachmentName}"></a></p>
+        <button type="button" class="delete-btn" th:data-id="${notice.noticeId}" th:data-type="'attachment'">X</button>
+      </div>
+      <input type="file" id="attachmentFile" name="attachmentFile" accept=".hwp,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+    </div>
+    <div class="button-container">
+      <button type="submit">수정</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  $(document).ready(function() {
+    $('#content').summernote({
+      height: 300,
+      minHeight: null,
+      maxHeight: null,
+      focus: true,
+      placeholder: '내용을 입력하세요...',
+      toolbar: [
+        ['style', ['bold', 'italic', 'underline', 'clear']],
+        ['font', ['strikethrough', 'superscript', 'subscript']],
+        ['fontsize', ['fontsize']],
+        ['color', ['color']],
+        ['para', ['ul', 'ol', 'paragraph']],
+        ['height', ['height']],
+        ['insert', ['link', 'table']],
+        ['view', ['fullscreen', 'codeview']]
+      ]
+    });
+
+    // 첨부 파일 형식 및 크기 제한
+    $('#attachmentFile').on('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        // 파일 크기 제한 (예: 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          alert('파일 크기는 10MB를 초과할 수 없습니다.');
+          e.target.value = '';
+          return;
+        }
+        // 파일 형식 제한
+        const allowedTypes = [
+          'application/x-hwp',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        if (!allowedTypes.includes(file.type)) {
+          alert('허용된 파일 형식(HWP, XLS, XLSX, DOC, DOCX)이 아닙니다.');
+          e.target.value = '';
+          return;
+        }
+      }
+    });
+
+    // X 버튼 클릭 시 AJAX로 삭제 요청
+    $('.delete-btn').on('click', function() {
+      const noticeId = $(this).data('id');
+      const type = $(this).data('type');
+      const container = $(this).closest('.current-image, .current-attachment');
+
+      if (confirm(type === 'image' ? '이미지를 삭제하시겠습니까?' : '첨부 파일을 삭제하시겠습니까?')) {
+        $.ajax({
+          url: `/admin/notice/${noticeId}/delete-${type}`,
+          type: 'POST',
+          success: function(response) {
+            if (response.success) {
+              container.remove(); // UI에서 제거
+              alert(type === 'image' ? '이미지가 삭제되었습니다.' : '첨부 파일이 삭제되었습니다.');
+            } else {
+              alert('삭제에 실패했습니다: ' + response.message);
+            }
+          },
+          error: function(xhr, status, error) {
+            alert('삭제 중 오류가 발생했습니다: ' + error);
+          }
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>

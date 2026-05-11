@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.fitzcode.admin.mapper.ProductDetailMapper">
+
+    <!-- 상품 기본 정보 조회 -->
+    <select id="findProductDetailById"
+            resultType="ProductDetailDTO"
+            parameterType="long">
+        SELECT
+        p.product_id        AS productId,
+        p.product_name      AS productName,
+        p.description       AS description,
+        p.brand             AS brand,
+        p.price             AS price,
+        p.stock             AS stock,
+        p.status            AS status,
+        p.discounted_price  AS discountedPrice,
+        c.category_id       AS categoryId,
+        c.name              AS categoryName,
+        p.image_url         AS imageUrl
+        FROM PRODUCT p
+        LEFT JOIN CATEGORY c ON p.category_id = c.category_id
+        WHERE p.product_id = #{productId}
+    </select>
+
+    <!-- 상품 이미지 목록 조회 -->
+    <select id="findProductImagesById"
+            resultType="ProductImageDTO"
+            parameterType="long">
+        SELECT
+        image_id    AS productImageId,
+        product_id  AS productId,
+        image_url   AS imageUrl,
+        image_order AS imageOrder
+        FROM PRODUCT_IMAGE
+        WHERE product_id = #{productId}
+        ORDER BY image_order ASC
+    </select>
+
+    <!-- 특정 상품의 사이즈 목록 조회 -->
+    <select id="findSizesByProductId"
+            resultType="ProductSizeDTO"
+            parameterType="long">
+        SELECT
+        product_size_id AS productSizeId,
+        product_id      AS productId,
+        size_code       AS sizeCode,
+        stock           AS stock
+        FROM PRODUCT_SIZE
+        WHERE product_id = #{productId}
+        ORDER BY size_code ASC
+    </select>
+
+    <!-- 사이즈 재고 수정 -->
+    <update id="updateProductSizeStock"
+            parameterType="ProductSizeDTO">
+        UPDATE PRODUCT_SIZE
+        SET stock = #{stock}
+        WHERE product_size_id = #{productSizeId}
+    </update>
+
+    <!-- 할인 가격 수정 -->
+    <update id="updateDiscountedPrice">
+        UPDATE PRODUCT
+        SET discounted_price = #{discountedPrice}
+        WHERE product_id = #{productId}
+    </update>
+
+    <!-- 새로운 사이즈 데이터 인서트 -->
+    <insert id="insertProductSize" parameterType="ProductSizeDTO" useGeneratedKeys="true" keyProperty="productSizeId">
+        INSERT INTO PRODUCT_SIZE (product_id, size_code, stock)
+        VALUES (#{productId}, #{sizeCode}, #{stock})
+    </insert>
+
+    <!-- 상품 상태 수정 -->
+    <update id="updateProductStatus">
+        UPDATE PRODUCT
+        SET status = #{status}
+        WHERE product_id = #{productId}
+    </update>
+
+    <!-- 상품 삭제 -->
+    <delete id="deleteProduct" parameterType="long">
+        DELETE FROM PRODUCT
+        WHERE product_id = #{productId}
+    </delete>
+
+    <!-- 리뷰 목록 조회 (페이징 추가) -->
+    <select id="findReviewsByProductId" resultType="ReviewDTO" parameterType="map">
+        SELECT
+        r.review_id   AS reviewId,
+        r.product_id  AS productId,
+        r.user_id     AS userId,
+        u.user_name   AS userName,
+        r.rating      AS rating,
+        r.content     AS content,
+        r.created_at  AS createdAt,
+        r.updated_at  AS updatedAt
+        FROM REVIEW r
+        LEFT JOIN USER u ON r.user_id = u.user_id
+        WHERE r.product_id = #{productId}
+        ORDER BY r.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 리뷰 개수 조회 -->
+    <select id="countReviewsByProductId" resultType="int" parameterType="long">
+        SELECT COUNT(*)
+        FROM REVIEW
+        WHERE product_id = #{productId}
+    </select>
+
+    <!-- 리뷰 단일 조회 (삭제 확인용) -->
+    <select id="findReviewById" resultType="ReviewDTO" parameterType="long">
+        SELECT
+        review_id   AS reviewId,
+        product_id  AS productId,
+        user_id     AS userId
+        FROM REVIEW
+        WHERE review_id = #{reviewId}
+    </select>
+
+    <!-- 리뷰 이미지 조회 -->
+    <select id="findReviewImagesByReviewId" resultType="string" parameterType="long">
+        SELECT image_url
+        FROM REVIEW_IMAGE
+        WHERE review_id = #{reviewId}
+        ORDER BY image_id ASC
+    </select>
+
+    <!-- 리뷰 삭제 -->
+    <delete id="deleteReview" parameterType="long">
+        DELETE FROM REVIEW
+        WHERE review_id = #{reviewId}
+    </delete>
+
+    <!-- Q&A 목록 조회 (페이징 추가) -->
+    <select id="findQnasByProductId" resultType="QnaDTO" parameterType="map">
+        SELECT
+        q.qna_id       AS qnaId,
+        q.product_id   AS productId,
+        q.user_id      AS userId,
+        u.user_name    AS userName,
+        q.question     AS question,
+        q.answer       AS answer,
+        q.status       AS status,
+        q.created_at   AS createdAt,
+        q.answered_at  AS answeredAt
+        FROM PRODUCT_QNA q
+        LEFT JOIN USER u ON q.user_id = u.user_id
+        WHERE q.product_id = #{productId}
+        ORDER BY q.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- Q&A 목록 조회 (상태별, 페이징 추가) -->
+    <select id="findQnasByProductIdAndStatus" resultType="QnaDTO" parameterType="map">
+        SELECT
+        q.qna_id       AS qnaId,
+        q.product_id   AS productId,
+        q.user_id      AS userId,
+        u.user_name    AS userName,
+        q.question     AS question,
+        q.answer       AS answer,
+        q.status       AS status,
+        q.created_at   AS createdAt,
+        q.answered_at  AS answeredAt
+        FROM PRODUCT_QNA q
+        LEFT JOIN USER u ON q.user_id = u.user_id
+        WHERE q.product_id = #{productId} AND q.status = #{status}
+        ORDER BY q.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- Q&A 개수 조회 -->
+    <select id="countQnasByProductId" resultType="int" parameterType="long">
+        SELECT COUNT(*)
+        FROM PRODUCT_QNA
+        WHERE product_id = #{productId}
+    </select>
+
+    <!-- Q&A 개수 조회 (상태별) -->
+    <select id="countQnasByProductIdAndStatus" resultType="int">
+        SELECT COUNT(*)
+        FROM PRODUCT_QNA
+        WHERE product_id = #{productId} AND status = #{status}
+    </select>
+
+    <!-- Q&A 단일 조회 (삭제 확인용) -->
+    <select id="findQnaById" resultType="QnaDTO" parameterType="long">
+        SELECT
+        qna_id       AS qnaId,
+        product_id   AS productId,
+        user_id      AS userId
+        FROM PRODUCT_QNA
+        WHERE qna_id = #{qnaId}
+    </select>
+
+    <!-- Q&A 답변 추가/수정 (공통 쿼리) -->
+    <update id="updateQnaAnswer">
+        UPDATE PRODUCT_QNA
+        SET answer = #{answer},
+        status = 2,
+        answered_at = CURRENT_TIMESTAMP
+        WHERE qna_id = #{qnaId}
+    </update>
+
+    <!-- Q&A 삭제 -->
+    <delete id="deleteQna" parameterType="long">
+        DELETE FROM PRODUCT_QNA
+        WHERE qna_id = #{qnaId}
+    </delete>
+
+    <!-- 대표 이미지 URL 업데이트 -->
+    <update id="updateProductMainImage">
+        UPDATE PRODUCT
+        SET image_url = #{imageUrl}
+        WHERE product_id = #{productId}
+    </update>
+
+    <!-- 특정 상품의 추가 이미지 삭제 -->
+    <delete id="deleteProductImages" parameterType="long">
+        DELETE FROM PRODUCT_IMAGE
+        WHERE product_id = #{productId}
+    </delete>
+
+    <!-- 새로운 추가 이미지 삽입 -->
+    <insert id="insertProductImage" parameterType="ProductImageDTO" useGeneratedKeys="true" keyProperty="productImageId">
+        INSERT INTO PRODUCT_IMAGE (product_id, image_url, image_order)
+        VALUES (#{productId}, #{imageUrl}, #{imageOrder})
+    </insert>
+
+    <!-- 특정 이미지 ID에 해당하는 이미지를 삭제 -->
+    <delete id="deleteProductImagesById" parameterType="long">
+    DELETE FROM PRODUCT_IMAGE
+    WHERE image_id = #{productImageId}
+    </delete>
+
+    <!-- 이미지 삭제 후 image_order 재정의 -->
+    <update id="updateProductImageOrder">
+        UPDATE PRODUCT_IMAGE
+        SET image_order = #{imageOrder}
+        WHERE image_id = #{productImageId}
+    </update>
+
+    <!-- 사이즈 재고 삭제 -->
+    <delete id="deleteProductSizes" parameterType="long">
+        DELETE FROM PRODUCT_SIZE
+        WHERE product_id = #{productId}
+    </delete>
+</mapper>

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.fitzcode.admin.mapper.AdminInquiryMapper">
+
+    <resultMap id="InquiryResultMap" type="InquiryDTO">
+        <id property="inquiryId" column="inquiry_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="orderId" column="order_id"/>
+        <result property="subject" column="subject"/>
+        <result property="content" column="content"/>
+        <result property="categoryCode" column="categoryCode"/>
+        <result property="statusCode" column="statusCode"/>
+        <result property="reply" column="reply"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="productId" column="product_id"/>
+        <result property="productName" column="product_name"/>
+        <collection property="imageUrls" ofType="String">
+            <result column="image_url"/>
+        </collection>
+    </resultMap>
+
+    <!-- 전체 문의 목록 조회 -->
+    <select id="getInquiryList" resultMap="InquiryResultMap">
+        SELECT
+        i.inquiry_id,
+        i.user_id,
+        u.user_name,
+        i.order_id,
+        i.subject,
+        i.content,
+        i.category AS categoryCode,
+        i.status AS statusCode,
+        i.reply,
+        i.created_at,
+        i.updated_at,
+        i.product_id,
+        p.product_name,
+        imgs.image_url
+        FROM INQUIRY i
+        JOIN USER u ON i.user_id = u.user_id
+        LEFT JOIN PRODUCT p ON i.product_id = p.product_id
+        LEFT JOIN INQUIRY_IMAGE imgs ON i.inquiry_id = imgs.inquiry_id
+        ORDER BY i.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 문의 상세 조회 -->
+    <select id="getInquiryDetail" resultMap="InquiryResultMap">
+        SELECT
+        i.inquiry_id,
+        i.user_id,
+        u.user_name,
+        i.order_id,
+        i.subject,
+        i.content,
+        i.category AS categoryCode,
+        i.status AS statusCode,
+        i.reply,
+        i.created_at,
+        i.updated_at,
+        i.product_id,
+        p.product_name,
+        imgs.image_url
+        FROM INQUIRY i
+        JOIN USER u ON i.user_id = u.user_id
+        LEFT JOIN PRODUCT p ON i.product_id = p.product_id
+        LEFT JOIN INQUIRY_IMAGE imgs ON i.inquiry_id = imgs.inquiry_id
+        WHERE i.inquiry_id = #{inquiryId}
+    </select>
+
+    <!-- 문의 상태 변경 -->
+    <update id="updateInquiryStatus">
+        UPDATE INQUIRY SET status = #{status}, updated_at = NOW()
+        WHERE inquiry_id = #{inquiryId}
+    </update>
+
+    <!-- 문의 카테고리 수정 -->
+    <update id="updateInquiryCategory">
+        UPDATE INQUIRY SET category = #{category}, updated_at = NOW()
+        WHERE inquiry_id = #{inquiryId}
+    </update>
+
+    <!-- 답변 -->
+    <update id="updateInquiryReplyAndStatus">
+        UPDATE INQUIRY
+        SET reply = #{reply}, status = #{status}, updated_at = NOW()
+        WHERE inquiry_id = #{inquiryId}
+    </update>
+
+    <!-- 필터링된 문의 목록 조회 -->
+    <select id="getFilteredInquiryList" resultMap="InquiryResultMap">
+        SELECT
+        i.inquiry_id,
+        i.user_id,
+        u.user_name,
+        i.order_id,
+        i.subject,
+        i.content,
+        i.category AS categoryCode,
+        i.status AS statusCode,
+        i.reply,
+        i.created_at,
+        i.updated_at,
+        i.product_id,
+        p.product_name,
+        imgs.image_url
+        FROM INQUIRY i
+        JOIN USER u ON i.user_id = u.user_id
+        LEFT JOIN PRODUCT p ON i.product_id = p.product_id
+        LEFT JOIN INQUIRY_IMAGE imgs ON i.inquiry_id = imgs.inquiry_id
+        <where>
+            <if test="categoryIds != null and !categoryIds.isEmpty()">
+                AND i.category IN
+                <foreach collection="categoryIds" item="categoryId" open="(" close=")" separator=",">
+                    #{categoryId}
+                </foreach>
+            </if>
+            <if test="statusCodes != null and !statusCodes.isEmpty()">
+                AND i.status IN
+                <foreach collection="statusCodes" item="statusCode" open="(" close=")" separator=",">
+                    #{statusCode}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY i.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 필터링된 문의 총 개수 -->
+    <select id="getTotalFilteredInquiryCount" resultType="int">
+        SELECT COUNT(*)
+        FROM INQUIRY i
+        <where>
+            <if test="categoryIds != null and !categoryIds.isEmpty()">
+                AND i.category IN
+                <foreach collection="categoryIds" item="categoryId" open="(" close=")" separator=",">
+                    #{categoryId}
+                </foreach>
+            </if>
+            <if test="statusCodes != null and !statusCodes.isEmpty()">
+                AND i.status IN
+                <foreach collection="statusCodes" item="statusCode" open="(" close=")" separator=",">
+                    #{statusCode}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <!-- 문의에 첨부된 이미지 개수 -->
+    <select id="countImagesByInquiryId" resultType="int">
+        SELECT COUNT(*)
+        FROM INQUIRY_IMAGE
+        WHERE inquiry_id = #{inquiryId}
+    </select>
+</mapper>

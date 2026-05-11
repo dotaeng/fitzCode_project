@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <link rel="stylesheet" th:href="@{/css/user/updateInfo.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+<!-- header -->
+<div th:replace="~{fragments/header}"></div>
+
+<br><br><br><br>
+<div class="mypageContainer">
+    <!-- navi -->
+    <div th:replace="~{fragments/mypageNavi}"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="mypageContent">
+        <h2>회원 정보변경</h2>
+        <div id="hr"></div>
+        <div class="myInfo">
+            <form th:action="@{/mypage/updateInfo}" method="post">
+                <div class="updateInfo">
+                    <h2>[[${dto.userName}]]</h2>
+                    <div th:text="${dto.userName}" id="userName"/>
+                    <div class="userInfo">
+                        <div><h4>이메일</h4><input type="text" th:value="${dto.email}" name="email" class="userInput"></div>
+                        <div><h4>비밀번호</h4><input type="text" name="password" class="userInput"></div>
+                        <div><h4>핸드폰 번호</h4><input type="text" th:value="${dto.phoneNumber}" name="phoneNumber" class="userInput"></div>
+                    </div>
+                    <input type="hidden" name="userId" th:value="${dto.userId}">
+                    <input type="submit" id="updateInfoBtn" value="회원정보 변경">
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<!-- footer -->
+<div th:replace="~{fragments/footer}"></div>
+</body>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</html>

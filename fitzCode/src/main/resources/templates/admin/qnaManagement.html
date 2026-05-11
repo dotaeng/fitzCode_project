@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <link rel="stylesheet" th:href="@{/css/admin/qnaManagement.css}" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script th:src="@{/js/admin/qnaManagement.js}"></script>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Q&A 관리</h1>
+    <div class="header-buttons">
+      <a th:href="@{|/admin/products/${productId}|}" class="order-btn">뒤로가기</a>
+    </div>
+  </div>
+  <input type="hidden" id="productId" th:value="${productId}">
+  <div class="filter-container">
+    <form th:action="@{|/admin/products/qna/${productId}|}" method="get" style="display: flex; align-items: center;">
+      <label for="filter" style="margin-right: 10px;">필터:</label>
+      <select name="filter" id="filter" onchange="this.form.submit()" style="padding: 5px; border: 0.6px solid gray; border-radius: 5px; text-align: center">
+        <option value="all" th:selected="${filter == 'all'}">전체</option>
+        <option value="waiting" th:selected="${filter == 'waiting'}">미답변</option>
+        <option value="completed" th:selected="${filter == 'completed'}">답변</option>
+      </select>
+      <input type="hidden" name="page" value="1">
+    </form>
+  </div>
+  <table>
+    <thead>
+    <tr>
+      <th class="qna-id">-</th>
+      <th class="user">사용자</th>
+      <th class="question">질문</th>
+      <th class="answer">답변</th>
+      <th class="status">상태</th>
+      <th class="action">작업</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="qna : ${qnas}">
+      <td class="qna-id" th:text="${qna.qnaId}">ID</td>
+      <td class="user">
+        <a th:href="@{|/admin/members/${qna.userId}|}" class="user-link" th:text="${qna.userName}">사용자</a>
+      </td>
+      <td class="question" th:text="${qna.question}">질문</td>
+      <td class="answer" th:text="${qna.answer ?: ''}">답변</td>
+      <td class="status">
+        <span th:class="${qna.status == 1 ? 'status-waiting' : 'status-completed'}"
+              th:text="${qna.status == 1 ? '답변 대기' : '답변 완료'}">상태</span>
+      </td>
+      <td class="action">
+        <button class="action-btn answer-qna-btn" th:data-qna-id="${qna.qnaId}" th:data-answer="${qna.answer}" style="padding-right: 7px; padding-left: 7px;">
+          답변하기
+        </button>
+        <button class="action-btn delete-qna-btn" th:data-qna-id="${qna.qnaId}" style="padding-right: 20px; padding-left: 18px; margin-top: 5px;">
+          삭제
+        </button>
+      </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(qnas)}">
+      <td colspan="6" style="text-align: center;">Q&A가 없습니다.</td>
+    </tr>
+    </tbody>
+  </table>
+
+  <!-- 페이지네이션 -->
+  <div class="pagination" style="text-align: center; margin-top: 20px;">
+    <a th:if="${currentPage > 1}" th:href="@{|/admin/products/qna/${productId}?filter=${filter}&page=${currentPage - 1}|}">&lt;</a>
+    <th:block th:with="startPage=${((currentPage - 1) / 5 * 5 + 1)}, endPage=${startPage + 4 > totalPages ? totalPages : startPage + 4}">
+      <a th:each="i : ${#numbers.sequence(startPage, endPage)}"
+         th:href="@{|/admin/products/qna/${productId}?filter=${filter}&page=${i}|}"
+         th:classappend="${i == currentPage ? 'active' : ''}"
+         th:text="${i}"></a>
+    </th:block>
+    <a th:if="${currentPage < totalPages}" th:href="@{|/admin/products/qna/${productId}?filter=${filter}&page=${currentPage + 1}|}">&gt;</a>
+  </div>
+</div>
+
+<!-- Q&A 답변 팝업 -->
+<div class="qna-answer-popup">
+  <div class="popup-content">
+    <form id="qnaAnswerForm">
+      <input type="hidden" id="popupQnaId" name="qnaId">
+      <textarea id="popupAnswer" name="answer" placeholder="답변을 입력하세요"></textarea>
+      <button type="submit">저장</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

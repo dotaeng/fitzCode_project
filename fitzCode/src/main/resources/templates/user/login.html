@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <style>
+        /* 기본 스타일 */
+        .bodycontainer {
+            font-family: 'Apple SD Gothic Neo', sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0 10px; /* 기존 padding-top 제거 */
+            margin-top: 120px; /* 헤더 높이만큼 여백 추가 */
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            /*box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);*/
+        }
+
+        .line {
+            position: relative;
+            height: 1px;
+            background-color: #ddd;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .line::before {
+            content: "간편 로그인";
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            padding: 0 10px;
+            font-size: 14px;
+            color: #777;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: rgba(80, 80, 80, 0.73);
+        }
+
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 7px;
+            /*border: 1px solid #ddd;*/
+            border: none;
+            /*border-radius: 5px;*/
+            font-size: 16px;
+            box-sizing: border-box;
+            margin-top: 0.5rem;
+            background-color: #fff;
+            box-shadow: inset 0 -2px 0 0 rgb(228, 228, 228);
+            transition: box-shadow 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #a6c1ee;
+            outline: none;
+            box-shadow: inset 0 -2.5px 0 0 #000;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background-color: #2f2f32;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background-color: #131313;
+        }
+
+        .links1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .links2 {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .links1 a {
+            font-size: 14px;
+            color: #000000;
+            text-decoration: none;
+        }
+
+        .links2 a {
+            font-size: 14px;
+            color: #496b9a;
+            text-decoration: none;
+        }
+
+        .links1 a:hover {
+            text-decoration: underline;
+        }
+
+        .links2 a:hover {
+            text-decoration: underline;
+        }
+
+        .social-login {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .kakao-icon {
+            width: 12%;
+            height: 12%;
+        }
+
+        .kakao-icon:hover{
+            cursor: pointer;
+        }
+
+        .naver-icon {
+            width: 12%;
+            height: 12%;
+        }
+
+        .naver-icon:hover{
+            cursor: pointer;
+        }
+
+        .google-icon {
+            width: 12%;
+            height: 12%;
+        }
+
+        .google-icon:hover{
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="bodycontainer">
+<!-- header -->
+<div th:replace="~{fragments/header}"></div>
+<!-- 로그인 폼 -->
+<div class="container">
+    <h2>LOGIN</h2>
+    <form action="/login" method="post">
+        <br><br>
+        <!-- 이메일 입력 -->
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+            <span th:text="${emailErrorMessage}" style="color: red; font-size: 12px;"></span>
+        </div>
+        <br><br>
+        <!-- 비밀번호 입력 -->
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            <span th:text="${pwErrorMessage}" style="color: red; font-size: 12px;"></span>
+        </div>
+
+        <!-- 로그인 버튼 -->
+        <button type="submit" class="btn">로그인</button>
+        <br>
+        <!-- 이메일, 비밀번호 찾기 링크 -->
+        <div class="links1">
+            <a href="/findEmail">이메일 찾기</a> |
+            <a href="/pwEmail">비밀번호 찾기</a>
+        </div>
+
+        <!-- 회원가입 링크 -->
+        <div class="links2">
+            <p>아직 계정이 없으신가요? <a th:href="@{/joinForm}">회원가입하러가기</a></p>
+        </div>
+
+        <br>
+        <div class="line"></div>
+        <!-- 간편 로그인 바 -->
+
+        <div class="social-login">
+            <a href="/oauth2/authorization/kakao"><img class="kakao-icon" src="/img/kakao_icon.png" alt="Kakao Logo"></a>
+            <a href="/oauth2/authorization/google"><img class="google-icon" src="/img/google_icon.png" alt="Google Logo"></a>
+            &nbsp;<a href="/oauth2/authorization/naver"><img class="naver-icon" src="/img/naver_icon.png" alt="Naver Logo"></a>
+        </div>
+    </form>
+</div>
+</div>
+<!-- footer -->
+<div th:replace="~{fragments/footer}"></div>
+
+</body>
+<script th:inline="javascript">
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.has('error')) {
+        oauthErrorMessage = "이미 다른 소셜 계정(또는 일반)으로 가입된 회원입니다";
+
+        alert(oauthErrorMessage);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+</script>
+<script th:if="${ErrorMessage}">
+    alert("[[${ErrorMessage}]]");
+</script>
+</html>

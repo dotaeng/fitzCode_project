@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/admin/productList.css}" />
+</head>
+<body>
+<div class="container">
+    <!-- 사이드바 -->
+    <div th:replace="~{fragments/managerSidebar}"></div>
+
+    <div class="content-wrapper">
+        <h2><a class="title-productList" href="/admin/products">상품관리</a></h2>
+
+        <!-- 검색 및 필터 -->
+        <div class="search-container">
+            <label for="sortOrder">정렬:</label>
+            <select id="sortOrder" name="sortOrder">
+                <option value="desc" th:selected="${sort == 'desc'}">최신순</option>
+                <option value="asc" th:selected="${sort == 'asc'}">오래된순</option>
+            </select>
+
+            <label for="parentCategory">카테고리:</label>
+            <select id="parentCategory" name="parentCategory">
+                <option value="">전체</option>
+                <option th:each="category : ${parentCategories}"
+                        th:value="${category.categoryId}"
+                        th:text="${category.name}"
+                        th:selected="${category.categoryId == parentCategoryId}">
+                </option>
+            </select>
+
+            <select id="childCategory" name="childCategory" disabled>
+                <option value="">전체</option>
+            </select>
+
+            <input type="text" id="searchKeyword" name="searchKeyword" th:value="${keyword}" placeholder="상품명 입력">
+            <button id="searchBtn">검색</button>
+            <a th:href="@{/admin/products/add}" class="add-product-btn"><button>상품추가</button></a>
+        </div>
+
+        <!-- 상품 목록 테이블 -->
+        <table>
+            <thead>
+            <tr>
+                <th>-</th>
+                <th>이미지</th>
+                <th>상품명</th>
+                <th>브랜드</th>
+                <th>가격</th>
+                <th>할인가</th>
+                <th>재고</th>
+                <th>상태</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="product : ${products}" th:data-url="@{/admin/products/{id}(id=${product.productId})}" class="product-row">
+                <td th:text="${product.productId}"></td>
+                <td>
+                    <img th:src="${product.imageUrl}" class="preview-img" alt="상품 이미지"
+                         th:unless="${product.imageUrl == null}" />
+                    <span th:if="${product.imageUrl == null}">이미지 없음</span>
+                </td>
+                <td>
+                    <a th:href="@{/admin/products/{id}(id=${product.productId})}" th:text="${product.productName}" class="product-link"></a>
+                </td>
+                <td th:text="${product.brand}"></td>
+                <td th:text="${#numbers.formatInteger(product.price, 3, 'COMMA')}" class="price-original"></td>
+                <td>
+                    <span th:if="${product.discountedPrice != null and product.discountedPrice != product.price}"
+                          th:text="${#numbers.formatInteger(product.discountedPrice, 3, 'COMMA')}"
+                          class="price-discounted"></span>
+                </td>
+                <td th:text="${product.stock}"></td>
+                <td th:text="${product.status.description}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- 페이지네이션 -->
+        <div class="pagination">
+            <a th:href="@{/admin/products(page=${currentPage - 1}, parentCategoryId=${parentCategoryId}, childCategoryId=${childCategoryId}, sort=${sort}, keyword=${keyword})}"
+               th:classappend="${currentPage == 1 ? 'disabled' : ''}" th:text="'<'"></a>
+
+            <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
+                <a th:href="@{/admin/products(page=${i}, parentCategoryId=${parentCategoryId}, childCategoryId=${childCategoryId}, sort=${sort}, keyword=${keyword})}"
+                   th:text="${i}"
+                   th:classappend="${i == currentPage ? 'active' : ''}"></a>
+            </th:block>
+
+            <a th:href="@{/admin/products(page=${endPage + 1}, parentCategoryId=${parentCategoryId}, childCategoryId=${childCategoryId}, sort=${sort}, keyword=${keyword})}"
+               th:classappend="${currentPage >= totalPages ? 'disabled' : ''}" th:text="'>'"></a>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/admin/productList.js}"></script>
+</body>
+</html>

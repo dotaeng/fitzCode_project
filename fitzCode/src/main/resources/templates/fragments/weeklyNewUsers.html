@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fitzCode</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 500px;
+            height: 400px;
+            margin: 0 auto;
+            padding: 50px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div th:fragment="weeklyNewUsersChart" class="chart-container">
+    <h3>1주일간 회원가입 추이</h3>
+    <canvas id="newUsersChart"></canvas>
+
+    <script th:inline="javascript">
+        let dates = /*[[${weeklyNewUserDates}]]*/ [];
+        let dataValues = /*[[${weeklyNewUserCounts}]]*/ [];
+
+        // JSON 데이터 변환
+        dates = JSON.parse('[[${weeklyNewUserDates}]]');
+        dataValues = JSON.parse('[[${weeklyNewUserCounts}]]');
+
+        console.log("dates:", dates);
+        console.log("dataValues:", dataValues);
+
+        const ctx = document.getElementById('newUsersChart').getContext('2d');
+
+        const newUsersData = {
+            labels: dates, // 날짜 배열
+            datasets: [{
+                label: '신규 가입자 수',
+                data: dataValues, // 데이터
+                borderColor: 'rgb(73,107,154)',
+                backgroundColor: 'rgba(73,107,154, 0.5)',
+                borderWidth: 2,
+                pointStyle: 'circle',
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        };
+
+        const config = {
+            type: 'line', // 라인 차트로 설정
+            data: newUsersData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: false, text: '1주일간 신규 가입자 수' }
+                }
+            }
+        };
+
+        new Chart(ctx, config);
+    </script>
+</div>
+
+</body>
+</html>

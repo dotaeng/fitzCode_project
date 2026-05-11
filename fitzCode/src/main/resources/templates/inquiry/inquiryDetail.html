@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <link rel="stylesheet" th:href="@{/css/inquiry/inquiryDetail.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+<!-- header -->
+<div th:replace="~{fragments/header}"></div>
+
+<br><br><br><br>
+<div class="mypageContainer">
+    <!-- navi -->
+    <div th:replace="~{fragments/mypageNavi}"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="mypageContent">
+        <h2>1:1 문의 상세보기</h2>
+        <div id="hr"></div>
+        <div class="inquiryContainer">
+            <div class="inquiryContent">
+                <div class="inquiryListInfo">
+                    <div class="inquiryData">
+                        <div th:text="'[' + ${dto.category.description} + '] ' + ${dto.subject}" id="subject"></div>
+                        <div>
+                            <span class="data"
+                                  th:text="${dto.status.description} + '  |  ' +  ${#temporals.format(dto.createdAt, 'yyyy/MM/dd')}"/>
+                        </div>
+                    </div>
+<!--                    <div style="display: flex; flex-direction: row-reverse;">-->
+<!--                        <div class="data" th:text="${dto.userName} + ' / ' + ${dto.phoneNumber}"/>-->
+<!--                    </div>-->
+                    <br>
+<!--                    <h3> 문의 내용</h3>-->
+                    <div th:text="${dto.content}" class="content"></div>
+                    <!-- 문의 이미지 -->
+                    <div class="imageContainer" th:if="${list != null and list.size() > 0}">
+                        <table>
+                            <tr th:each="image : ${list}">
+                                <td rowspan="4">
+                                    <img th:src="${image.imageUrl}" th:alt="${image.imageUrl}" id="inquiryImg">
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <!-- 상품 이미지 -->
+                    <div class="productContainer" th:if="${dto.productName != null}">
+                        <h4>문의하신 상품</h4>
+                        <table>
+                            <tr>
+                                <td rowspan="4">
+                                    <img th:src="${dto.productImgUrl}" th:alt="${dto.productName}"
+                                         style="height: 120px; width: 120px">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold;" th:text="${dto.brand}"/>
+                            </tr>
+                            <tr>
+                                <td th:text="${dto.productName}"/>
+                            </tr>
+                            <tr>
+                                <td style="color: lightgray" th:text="${dto.description}"/>
+                            </tr>
+                        </table>
+                    </div>
+                    <!-- 답변 -->
+                    <div th:if="${dto.reply != null}" class="reply-container">
+                        <h3>답변</h3>
+                        <div class="reply" th:text="${dto.reply}"/>
+                    </div>
+
+                </div>
+            </div>
+            <div class="finalButtons" style="margin: 40px">
+                <a th:href="@{/inquiry/inquiryList}">목록으로</a>
+                <th:block th:if="${dto.getStatusCode() == 1}">
+                    <a th:href="@{/inquiry/modify/{inquiryId}(inquiryId=${dto.inquiryId})}">수정</a>
+                </th:block>
+                <a th:href="@{/inquiry/delete/{inquiryId}(inquiryId=${dto.inquiryId})}">삭제</a>
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+<br>
+<br>
+<br>
+<br>
+<!-- footer -->
+<div th:replace="~{fragments/footer}"></div>
+</body>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</html>

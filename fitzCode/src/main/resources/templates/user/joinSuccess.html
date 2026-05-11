@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+</head>
+<style>
+    .body-container{
+        font-family: 'Apple SD Gothic Neo', sans-serif;
+        background: rgb(255, 255, 255);
+        display: flex;
+        justify-content: center;
+        align-items: center; /* 중앙 배치 */
+        min-height: 70vh;
+        margin: 0;
+        padding: 70px 20px; /* 위쪽 여백을 더 늘림 */
+        box-sizing: border-box;
+        overflow-y: auto;
+        margin-top: 5%;
+        flex-direction: column; /* h3와 버튼을 세로로 정렬 */
+    }
+
+    a {
+        text-decoration: none;
+        color: white;
+    }
+
+
+    button {
+        margin-top:40px;
+        background-color: #2f2f32;  /* 버튼 배경 색 */
+        color: #232323;
+        font-size: 15px;            /* 글자 크기 */
+        padding: 12px 25px;         /* 위아래, 좌우 여백 */
+        border: none;               /* 테두리 제거 */
+        border-radius: 5px;         /* 둥근 모서리 */
+        cursor: pointer;           /* 커서 포인터로 변경 */
+        transition: background-color 0.3s ease, transform 0.2s ease; /* 배경 색상과 변형에 애니메이션 추가 */
+        box-shadow: 1px 1px 6px 1px #b5b5b5;
+    }
+
+    button:hover {
+        background-color: #3b4c70;
+    }
+
+    button:active {
+        transform: scale(1);
+        background-color: #3b4c70;
+    }
+
+    .check-img {
+        width: 70px;
+        height: 70px;
+    }
+
+    .box {
+        width: 37%;  /* 가로 길이 */
+        height: 40px;  /* 세로 길이 */
+        background-color: rgb(255, 255, 255);  /* 배경 색 */
+        color: #595959;  /* 글자 색 */
+        font-size: 17px;  /* 글자 크기 */
+        display: flex;
+        justify-content: center;  /* 가로 중앙 정렬 */
+        align-items: center;  /* 세로 중앙 정렬 */
+        border-radius: 25px;  /* 모서리 둥글게 */
+        text-align: center;  /* 텍스트 가운데 정렬 */
+        margin-top: 40px; /* 박스와 아래 요소들 사이 간격 */
+        box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.1);  /* 아주 살짝 그림자 */
+    }
+
+    p{
+        font-size: 30px;
+        font-weight: 600;
+        color: #2e4763;
+    }
+
+    .user{
+        font-size: 20px;
+        font-weight: 500;
+        color: #535353;
+        margin-top: -10px;
+    }
+
+    h3{
+        font-size: 20px;
+        font-weight: 500;
+        color: #535353;
+    }
+
+</style>
+<body>
+
+<!-- header -->
+<div th:replace="~{fragments/header}"></div>
+
+<div class="body-container">
+    <br><br><br>
+    <img class="check-img" src="/img/checkmark.png" alt="">
+    <p>회원가입 완료</p>
+    <h3 th:text="${userName} + ' 님의 회원가입이'"></h3>
+    <p class="user">정상적으로 완료되었습니다</p>
+    <div class="box">
+        * 회원가입 내역 및 수정은&nbsp;<p style="color: red; font-size: 18px;">마이페이지</p>에서 확인 가능합니다.
+    </div>
+    <button>
+        <a th:href="@{/login}" style="">로그인 하러가기</a>
+    </button>
+
+</div>
+
+<!-- footer -->
+<div th:replace="~{fragments/footer}"></div>
+
+</body>
+</html>

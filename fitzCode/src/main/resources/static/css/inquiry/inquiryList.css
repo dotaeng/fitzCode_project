@@ -1,0 +1,57 @@
+.mypageContainer {
+    display: flex;
+}
+
+.mypageContent {
+    width: 800px;
+}
+
+#hr {
+    width: 100%;
+    background: #2f2f32;
+    height: 3px;
+    border-radius: 10px;
+}
+
+.inquiryListInfo {
+    display: flex
+;
+    font-size: 13.3px;
+    margin: 30px 20px;
+    padding: 27px 0px;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+/*여기까지 공통*/
+
+table{
+    width: 600px;
+    text-align: center;
+    border-collapse: separate;
+    border: 1px solid #2f2f32;
+    border-radius: 20px;
+}
+tr{
+    border-bottom: 1px solid #b2b2b2;
+}
+
+th{
+    padding: 20px 20px 0px 20px;
+}
+
+td{
+    padding: 10px 20px 22px 20px;
+}
+
+td div{
+    height: 1px;
+    background: #2f2f32;
+    width: 98%;
+    align-self: center;
+}
+
+a {
+    color: #2f2f32;
+}

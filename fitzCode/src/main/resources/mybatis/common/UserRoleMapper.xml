@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.fitzcode.common.mapper.UserRoleMapper">
+
+    <select id="findRolesByUserId" resultType="int">
+        SELECT role_id FROM USER_ROLE_MAPPING
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="findRolesInStringByUserId" resultType="kr.co.fitzcode.common.enums.UserRole">
+        SELECT CASE ur2.role_name
+        WHEN 1 THEN 'USER'
+        WHEN 2 THEN 'ADMIN'
+        WHEN 3 THEN 'LOGISTICS'
+        WHEN 4 THEN 'INQUIRY'
+        ELSE 'UNKNOWN'
+        END
+        FROM USER_ROLE_MAPPING ur
+        JOIN USER_ROLE ur2 ON ur.role_id = ur2.role_id
+        WHERE ur.user_id = #{userId}
+    </select>
+</mapper>

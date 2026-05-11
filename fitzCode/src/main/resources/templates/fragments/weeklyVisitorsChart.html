@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .chart-container {
+      width: 390px; /* .chart-box와 일치 */
+      height: 390px; /* .chart-box의 height와 일치 */
+      margin: 0 auto;
+      padding: 0; /* 패딩 제거 */
+    }
+  </style>
+</head>
+<body>
+<div th:fragment="weeklyVisitorsChart" class="chart-container">
+  <h3>주간 방문자 현황</h3>
+  <canvas id="weeklyVisitorsChart"></canvas>
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    const labels = /*[[${weeklyVisitorDates}]]*/ [];
+    const visitorCounts = /*[[${weeklyVisitorCounts}]]*/ [];
+
+    if (!Array.isArray(labels)) {
+      console.error("labels is not an array:", labels);
+    }
+    if (!Array.isArray(visitorCounts)) {
+      console.error("visitorCounts is not an array:", visitorCounts);
+    }
+
+    console.log("labels:", labels);
+    console.log("visitorCounts:", visitorCounts);
+    console.log("Canvas ctx:", document.getElementById('weeklyVisitorsChart'));
+
+    const visitorChartCtx = document.getElementById('weeklyVisitorsChart').getContext('2d'); // ctx -> visitorChartCtx로 변경
+
+    const visitorsData = {
+      labels: labels,
+      datasets: [{
+        label: '주간 방문자 수',
+        data: visitorCounts,
+        borderColor: 'rgb(73,107,154)',
+        backgroundColor: 'rgba(73,107,154, 0.5)',
+        borderWidth: 2,
+        pointStyle: 'circle',
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        fill: true,
+        tension: 0.4
+      }]
+    };
+
+    const visitorChartConfig = {
+      type: 'line',
+      data: visitorsData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: false, text: '주간 방문자 현황' }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: '방문자 수'
+            }
+          },
+          x: {
+            title: {
+              display: false,
+              text: '날짜'
+            }
+          }
+        }
+      }
+    };
+
+    new Chart(visitorChartCtx, visitorChartConfig);
+    /*]]>*/
+  </script>
+</div>
+</body>
+</html>

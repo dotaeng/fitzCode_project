@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80%;
+            max-width: 1000px;
+            padding: 20px;
+            margin: 30px auto;
+            position: relative;
+        }
+        .title-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #2f2f32;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+        .back-link {
+            position: absolute;
+            right: 0;
+            top: 0;
+            margin-top: 14px;
+            padding: 8px 12px;
+            color: #2f2f32;
+            border: 1px solid #2f2f32;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        .back-link:hover {
+            background-color: #2f2f32;
+            color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        thead {
+            background-color: #2f2f32;
+            color: white;
+        }
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .pagination {
+            text-align: center;
+        }
+        .pagination a {
+            margin: 0 5px;
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+            font-weight: normal;
+            transition: all 0.3s ease;
+        }
+        .pagination a:hover {
+            text-decoration: underline;
+        }
+        .pagination a.active {
+            font-weight: bold;
+            color: #2f2f32;
+            text-decoration: none;
+        }
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 15px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .pagination a {
+                font-size: 14px;
+                margin: 0 3px;
+            }
+
+            .pagination-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .back-link {
+                position: static;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="title-wrapper">
+        <h1 class="page-title" th:text="|상품 번호 ${productId} 구매 내역|">상품 구매 내역</h1>
+        <a th:href="@{/admin/products/{productId}(productId=${productId})}" class="back-link">back</a>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>주문번호</th>
+            <th>주문일</th>
+            <th>주문자</th>
+            <th>수량</th>
+            <th>금액</th>
+            <th>상태</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="order : ${orderDetails}">
+            <td th:text="${order.orderId}"></td>
+            <td th:text="${#temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td th:text="${order.userName}"></td>
+            <td th:text="${order.quantity}"></td>
+            <td th:text="${order.totalAmount} + '원'"></td>
+            <td>
+                <span th:switch="${order.orderStatus}">
+                    <span th:case="'PLACED'">주문 접수</span>
+                    <span th:case="'SHIPPED'">배송 중</span>
+                    <span th:case="'DELIVERED'">배송 완료</span>
+                    <span th:case="'CANCELLED'">주문 취소</span>
+                    <span th:case="'UNKNOWN'">알 수 없음</span>
+                </span>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(orderDetails)}">
+            <td colspan="6">구매 내역이 없습니다.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- 페이지네이션 -->
+    <div class="pagination-wrapper">
+        <div class="pagination">
+            <a th:if="${currentPage > 1}"
+               th:href="@{|/admin/products/orderdetail/${productId}?page=${currentPage - 1}|}"
+               class="page-link">«</a>
+
+            <th:block th:each="pageNum : ${#numbers.sequence(startPage, endPage)}">
+                <a th:href="@{|/admin/products/orderdetail/${productId}?page=${pageNum}|}"
+                   th:text="${pageNum}"
+                   th:classappend="${pageNum == currentPage} ? 'active' : ''"
+                   class="page-link"></a>
+            </th:block>
+
+            <a th:if="${currentPage < totalPages}"
+               th:href="@{|/admin/products/orderdetail/${productId}?page=${currentPage + 1}|}"
+               class="page-link">»</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

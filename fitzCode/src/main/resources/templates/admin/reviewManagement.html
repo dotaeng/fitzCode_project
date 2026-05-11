@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>fitzCode</title>
+  <link rel="stylesheet" th:href="@{/css/admin/reviewManagerment.css}" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script th:src="@{/js/admin/reviewManagement.js}"></script>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>리뷰 관리</h1>
+    <div class="header-buttons">
+      <a th:href="@{|/admin/products/${productId}|}" class="order-btn">뒤로가기</a>
+    </div>
+  </div>
+  <table>
+    <thead>
+    <tr>
+      <th class="review-id">리뷰 ID</th>
+      <th class="user">사용자</th>
+      <th class="rating">평점</th>
+      <th class="content">내용</th>
+      <th class="images">이미지</th>
+      <th class="delete">삭제</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="review : ${reviews}">
+      <td class="review-id" th:text="${review.reviewId}">ID</td>
+      <td class="user" th:text="${review.userName}">사용자</td>
+      <td class="rating" th:text="${review.rating}">평점</td>
+      <td class="content" th:text="${review.content}">내용</td>
+      <td class="images">
+        <div th:each="img : ${review.imageUrls}">
+          <img th:src="${img}" class="review-img" />
+        </div>
+      </td>
+      <td class="delete">
+        <button class="delete-review-btn" th:data-review-id="${review.reviewId}">삭제</button>
+      </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(reviews)}">
+      <td colspan="6" style="text-align: center; padding: 20px;">리뷰가 없습니다.</td>
+    </tr>
+    </tbody>
+  </table>
+
+  <!-- 페이지네이션 -->
+  <div class="pagination" style="text-align: center; margin-top: 20px;">
+    <!-- 이전 페이지 버튼 -->
+    <a th:href="@{|/review/${productId}?page=${currentPage - 1}|}" th:if="${currentPage > 1}">&lt;</a>
+
+    <th:block th:with="totalPagesFixed=${totalPages > 0 ? totalPages : 1}">
+      <th:block th:with="startPage=${((currentPage - 1) / 5 * 5 + 1)}, endPage=${startPage + 4 > totalPagesFixed ? totalPagesFixed : startPage + 4}">
+        <a th:each="i : ${#numbers.sequence(startPage, endPage)}"
+           th:href="@{|/review/${productId}?page=${i}|}"
+           th:classappend="${i == currentPage ? 'active' : ''}"
+           th:text="${i}"></a>
+      </th:block>
+    </th:block>
+
+    <!-- 다음 페이지 버튼 -->
+    <a th:href="@{|/review/${productId}?page=${currentPage + 1}|}" th:if="${currentPage < totalPagesFixed}">&gt;</a>
+  </div>
+
+<!-- 이미지 팝업 -->
+<div class="image-popup">
+  <img id="popupImage" src="" alt="리뷰 이미지 확대" />
+</div>
+</div>
+</body>
+</html>

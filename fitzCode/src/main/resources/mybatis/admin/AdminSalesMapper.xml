@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.fitzcode.admin.mapper.AdminSalesReportMapper">
+
+    <!-- 최근 30일간 날짜별 판매 데이터 조회 (총 매출과 총 판매 건수) -->
+    <select id="getDailySalesData" resultType="map">
+        SELECT
+        DATE(created_at) AS sale_date,
+        SUM(total_price) AS total_sales,
+        COUNT(DISTINCT order_id) AS sales_count
+        FROM
+        ORDERS
+        WHERE
+        created_at BETWEEN #{startDate} AND #{endDate}
+        AND order_status != 4
+        GROUP BY
+        DATE(created_at)
+        ORDER BY
+        sale_date ASC
+    </select>
+
+    <!-- 최근 14일간 판매 상품 순위 조회 (페이징 적용) -->
+    <select id="getSalesRankingForLast14Days" resultType="kr.co.fitzcode.common.dto.SalesRankingDTO">
+        SELECT
+        p.product_name AS productName,
+        SUM(od.price * od.quantity) AS totalSales,
+        SUM(od.quantity) AS quantitySold,
+        p.image_url AS imageUrl
+        FROM
+        ORDERS o
+        JOIN ORDER_DETAIL od ON o.order_id = od.order_id
+        JOIN PRODUCT p ON od.product_id = p.product_id
+        WHERE
+        o.created_at BETWEEN #{startDate} AND #{endDate}
+        AND o.order_status != 4
+        GROUP BY
+        p.product_id, p.product_name, p.image_url
+        ORDER BY
+        totalSales DESC
+        LIMIT 5 OFFSET #{offset}
+    </select>
+
+    <!-- 총 상품 수 조회 -->
+    <select id="getTotalSalesRankingCount" resultType="int">
+        SELECT
+        COUNT(*)
+        FROM (
+        SELECT
+        p.product_id
+        FROM
+        ORDERS o
+        JOIN ORDER_DETAIL od ON o.order_id = od.order_id
+        JOIN PRODUCT p ON od.product_id = p.product_id
+        WHERE
+        o.created_at BETWEEN #{startDate} AND #{endDate}
+        AND o.order_status != 4
+        GROUP BY
+        p.product_id, p.product_name, p.image_url
+        ) AS subquery
+    </select>
+
+    <!-- 상위 10개 검색어 조회 -->
+    <select id="getSearchRanking" resultType="kr.co.fitzcode.common.dto.SearchRankingDTO">
+        SELECT search_keyword AS keyword, COUNT(*) AS todaySearchCount
+        FROM search_log
+        WHERE DATE(search_time) = CURDATE()
+        GROUP BY search_keyword
+        ORDER BY todaySearchCount DESC
+        LIMIT 10
+    </select>
+
+    <!-- 오늘 검색된 고유 키워드 수 조회 -->
+    <select id="getTotalSearchRankingCount" resultType="int">
+        SELECT COUNT(DISTINCT search_keyword)
+        FROM search_log
+        WHERE DATE(search_time) = CURDATE()
+    </select>
+
+    <!-- 이전 날짜의 순위 조회 (search_ranking_history에서) -->
+    <select id="getPreviousRanking" parameterType="map" resultType="int">
+        SELECT ranking
+        FROM search_ranking_history
+        WHERE search_keyword = #{keyword}
+        AND date = #{date}
+        LIMIT 1
+    </select>
+
+    <!-- search_ranking_history에 삽입/갱신 (배치 작업에서 사용) -->
+    <insert id="insertOrUpdateSearchRanking">
+        INSERT INTO search_ranking_history (search_keyword, ranking, date)
+        VALUES (#{keyword}, #{ranking}, #{date})
+        ON DUPLICATE KEY UPDATE ranking = #{ranking}
+    </insert>
+
+    <!-- 특정 기간 동안의 총 매출 조회 -->
+    <select id="getTotalIncome" resultType="long">
+        SELECT COALESCE(SUM(total_price), 0)
+        FROM ORDERS
+        WHERE created_at BETWEEN #{startDate} AND #{endDate}
+        AND order_status != 4;
+    </select>
+</mapper>

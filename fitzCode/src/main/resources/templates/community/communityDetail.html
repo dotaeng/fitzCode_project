@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fitzCode</title>
+    <link th:fragment="header-head" rel="stylesheet" th:href="@{/css/community/communityDetail.css}"/>
+</head>
+<body>
+<!-- header -->
+<div th:replace="~{fragments/header}"></div>
+<main>
+    <div class="style-header">
+        <div class="user-info">
+            <img th:src="${profileImage != null ? profileImage : '/img/default-profile.png'}" alt="사용자 프로필"
+                 class="profile-img">
+            <div>
+                <a th:href="@{/community/user/profile/{userId}(userId=${post['user_id']})}" class="username-link">
+                    <strong th:text="${username}">사용자: </strong>
+                </a>
+                <img id="followBtn"
+                     th:if="${currentUser != null and currentUser.userId != post['user_id']}"
+                     th:src="${isFollowing ? '/img/removeuser.png' : '/img/adduser.png'}"
+                     alt="팔로우 버튼"
+                     style="width: 20px; margin-left: 7px; cursor: pointer;"
+                     th:data-following-id="${post['user_id']}">
+                <p th:text="'작성일: ' + ${#temporals.format(post['created_at'].toLocalDateTime(), 'yyyy-MM-dd HH:mm')}"
+                   style="margin-top: 4px;">작성일:</p>
+            </div>
+            <div style="margin-left: auto;">
+                <button class="edit-btn" th:if="${currentUser != null and currentUser.userId == post['user_id']}"
+                        th:onclick="|location.href='/community/modify/${post['post_id']}'|"><img src="/img/create.png"
+                                                                                                 alt=""
+                                                                                                 style="width: 20px; height: 20px;">
+                </button>
+                <form th:if="${currentUser != null and currentUser.userId == post['user_id']}"
+                      th:action="@{/community/delete/{postId}(postId=${post['post_id']})}" method="post"
+                      style="display: inline;">
+                    <button type="submit" class="edit-btn"><img src="/img/delete.png" alt=""
+                                                                style="width: 16px; height: 16px;"></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="style-container">
+        <div class="style-content">
+            <div th:if="${postImages != null and not #lists.isEmpty(postImages)}">
+                <div class="slider-container">
+                    <div class="slider" id="imageSlider">
+                        <div class="slide" th:each="image : ${postImages}">
+                            <img th:src="@{${image != null && image.getPostImageUrl() != null ? image.postImageUrl : '/img/default-style.jpg'}}"
+                                 alt="게시물 이미지" class="style-img">
+                        </div>
+                    </div>
+                    <button class="slider-btn prev-btn" id="prevBtn"><img src="/img/arrow-left.png" alt="Previous">
+                    </button>
+                    <button class="slider-btn next-btn" id="nextBtn"><img src="/img/arrow-right.png" alt="Next">
+                    </button>
+                </div>
+            </div>
+            <div th:unless="${postImages != null and not #lists.isEmpty(postImages)}">
+                <img th:src="@{/img/default-style.jpg}" alt="기본 이미지" class="style-img">
+            </div>
+            <h2 th:text="${post['title']}">스타일 테스트입니다-제목-</h2>
+            <p th:text="${post['content']}">스타일 테스트입니다-내용-</p>
+            <p th:text="${post['style_category']}" style="color: #acacac; margin-top: 5px; font-size: 13px;">스타일
+                테스트입니다-스타일 카테고리-</p>
+        </div>
+
+        <!-- 모달창 -->
+        <div id="commentModal" class="modal">
+            <div class="modal-content">
+                <span class="close">×</span>
+                <h3 style="color: #2f2f32">댓글 (<span id="commentCount" th:text="${post['comment_count']}">0</span>)</h3>
+                <div class="comment-input">
+                    <textarea id="commentText" placeholder="댓글을 입력하세요..."></textarea>
+                    <button id="submitComment">전송</button>
+                </div>
+                <div id="commentList" class="comment-list">
+                </div>
+            </div>
+        </div>
+
+        <div class="community-action">
+            <label class="ui-bookmark3" id="commentIcon">
+                <input type="checkbox" style="display: none;">
+                <div class="bookmark">
+                    <img src="/img/chat-bubble.png" alt="" style="width: 27px; height: 27px;">
+                </div>
+            </label>
+            <label class="ui-bookmark2">
+                <input type="checkbox" id="likeCheckbox" th:checked="${isLiked}"/>
+                <div class="bookmark">
+                    <svg viewBox="0 0 16 16" style="margin-top:4px" class="bi bi-heart-fill" height="25" width="25"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"
+                              fill-rule="evenodd"></path>
+                    </svg>
+                </div>
+            </label>
+            <span id="likeCount" th:text="${likeCount}">0</span>
+            <label class="ui-bookmark">
+                <input type="checkbox" id="saveCheckbox" th:checked="${isSaved}">
+                <div class="bookmark">
+                    <svg viewBox="0 0 32 32">
+                        <g>
+                            <path d="M27 4v27a1 1 0 0 1-1.625.781L16 24.281l-9.375 7.5A1 1 0 0 1 5 31V4a4 4 0 0 1 4-4h14a4 4 0 0 1 4 4z"></path>
+                        </g>
+                    </svg>
+                </div>
+            </label>
+            <span id="saveCount" th:text="${saveCount}">0</span>
+            <label class="menu">
+                <input type="button">
+                <div class="bookmark">
+                    <img src="/img/more.png" alt="" style="width: 25px; height: 25px;">
+                </div>
+                <div class="dropdown-menu">
+                    <button class="dropdown-item">신고하기</button>
+                </div>
+            </label>
+        </div>
+
+        <div class="product-tags">
+            <h3 th:text="'상품태그 ' + ${#lists.size(productTags)} + '개'">상품태그 2개</h3>
+            <div class="product-list">
+                <div class="product-item" th:each="product : ${productTags}">
+                    <img th:src="${product.imageUrl != null ? product.imageUrl : '/img/default-style.jpg'}" alt="상품 이미지"
+                         class="product-img">
+                    <p th:text="${product.productName}">상품이름:</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="other-styles">
+        <h3 th:text="'@' + ${username} + '님의 다른 스타일'">@username님의 다른 스타일</h3>
+        <div class="style-list">
+            <th:block th:each="style : ${otherStyles}">
+                <img th:src="@{${style.thumbnailImageUrl != null ? style.thumbnailImageUrl : '/img/default-style.jpg'}}"
+                     alt="다른 스타일" class="style-thumbnail">
+            </th:block>
+        </div>
+    </section>
+</main>
+<div th:replace="~{fragments/footer}"></div>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const postId = /*[[${post['post_id']}]]*/ 0;
+        const currentUserId = /*[[${currentUser != null ? currentUser.userId : null}]]*/ null; // 현재 사용자 ID 가져오기
+        const followingId = /*[[${post['user_id']}]]*/ 0; // 게시물 작성자의 user_id
+        const likeCheckbox = document.getElementById('likeCheckbox');
+        const saveCheckbox = document.getElementById('saveCheckbox');
+        const likeCountSpan = document.getElementById('likeCount');
+        const saveCountSpan = document.getElementById('saveCount');
+        const commentIcon = document.getElementById('commentIcon');
+        const modal = document.getElementById('commentModal');
+        const closeModal = document.querySelector('.close');
+        const submitCommentBtn = document.getElementById('submitComment');
+        const commentText = document.getElementById('commentText');
+        const commentList = document.getElementById('commentList');
+        const commentCountSpan = document.getElementById('commentCount');
+        const followBtn = document.getElementById('followBtn');
+
+
+        function requireLogin() {
+            if (!currentUserId) {
+                alert('로그인이 필요합니다.');
+                window.location.href = '/login';
+                return false;
+            }
+            return true;
+        }
+
+        // 팔로우 버튼 설정 (본인이 아닌 경우에만 실행)
+        if (followBtn && currentUserId && currentUserId !== followingId) {
+            fetch(`/api/community/follow/check/${followingId}`, {
+                method: 'GET',
+                headers: {'Content-Type': 'application/json'}
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        followBtn.src = data.isFollowing ? '/img/removeuser.png' : '/img/adduser.png';
+                    }
+                })
+                .catch(error => {
+                    console.error('에러 >>>>>>>:', error);
+                });
+        }
+
+        // 팔로우 버튼 클릭 (본인이 아닌 경우에만 실행)
+        if (followBtn) {
+            followBtn.addEventListener('click', function () {
+                if (!currentUserId) {
+                    alert('로그인이 필요합니다.');
+                    return;
+                }
+
+                const isFollowing = followBtn.src.includes('removeuser.png');
+                const url = isFollowing ? `/api/community/unfollow/${followingId}` : `/api/community/follow/${followingId}`;
+                const method = isFollowing ? 'DELETE' : 'POST';
+
+                fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'}
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            followBtn.src = data.isFollowing ? '/img/removeuser.png' : '/img/adduser.png';
+                            showNotification(isFollowing ? '팔로우가 취소되었습니다.' : '팔로우되었습니다.');
+                        } else {
+                            alert(data.message || '팔로우 처리 실패');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('에러 >>>>>>>:', error);
+                        alert('네트워크 오류');
+                    });
+            });
+        }
+
+        // 알림 표시
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed; top: 20px; right: 20px; padding: 10px 20px;
+                background-color: #4CAF50; color: white; border-radius: 5px;
+                z-index: 1000; transition: opacity 0.5s;
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 500);
+            }, 2000);
+        }
+
+        // 슬라이더
+        const slider = document.getElementById('imageSlider');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const slides = slider.getElementsByClassName('slide');
+        let currentIndex = 0;
+
+        function updateSlider() {
+            slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+        }
+
+        prevBtn.addEventListener('click', function () {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateSlider();
+            }
+        });
+
+        nextBtn.addEventListener('click', function () {
+            if (currentIndex < slides.length - 1) {
+                currentIndex++;
+                updateSlider();
+            }
+        });
+        console.log(slides.length)
+        updateSlider();
+
+        // 메뉴 드롭다운
+        const menuLabel = document.querySelector('.menu');
+        menuLabel.addEventListener('click', function (e) {
+            if (e.target.closest('.dropdown-menu')) return;
+            menuLabel.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!menuLabel.contains(event.target)) {
+                menuLabel.classList.remove('active');
+            }
+        });
+
+        // 좋아요
+        likeCheckbox.addEventListener('change', function () {
+            const isChecked = this.checked;
+            const url = isChecked ? `/api/community/like/${postId}` : `/api/community/unlike/${postId}`;
+            const method = isChecked ? 'POST' : 'DELETE';
+            fetch(url, {method: method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify({postId})})
+                .then(response => response.ok ? response.json() : Promise.reject('Network error'))
+                .then(data => {
+                    if (data.success) {
+                        likeCountSpan.textContent = data.likeCount;
+                        showNotification(isChecked ? '좋아요 추가됨' : '좋아요 삭제됨');
+                    } else {
+                        this.checked = !isChecked;
+                        alert(data.message || '좋아요 처리 실패');
+                    }
+                })
+                .catch(error => {
+                    this.checked = !isChecked;
+                    console.error('Error:', error);
+                    alert('네트워크 오류');
+                });
+        });
+
+        // 북마크
+        saveCheckbox.addEventListener('change', function () {
+            const isChecked = this.checked;
+            const url = isChecked ? `/api/community/save/${postId}` : `/api/community/unsave/${postId}`;
+            const method = isChecked ? 'POST' : 'DELETE';
+            fetch(url, {method: method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify({postId})})
+                .then(response => response.ok ? response.json() : Promise.reject('Network error'))
+                .then(data => {
+                    if (data.success) {
+                        saveCountSpan.textContent = data.saveCount;
+                        showNotification(isChecked ? '북마크 추가됨' : '북마크 삭제됨');
+                    } else {
+                        this.checked = !isChecked;
+                        alert(data.message || '북마크 처리 실패');
+                    }
+                })
+                .catch(error => {
+                    this.checked = !isChecked;
+                    console.error('Error:', error);
+                    alert('네트워크 오류');
+                });
+        });
+
+        // 댓글 모달
+        commentIcon.addEventListener('click', function () {
+            modal.style.display = 'flex';
+        });
+
+        closeModal.addEventListener('click', function () {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', function (event) {
+            if (event.target === modal) modal.style.display = 'none';
+        });
+
+        submitCommentBtn.addEventListener('click', function () {
+            const content = commentText.value.trim();
+            if (content) {
+                submitComment(content, null);
+                commentText.value = '';
+            }
+        });
+
+        fetch(`/api/comment/get/${postId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Fetched comments:', data);
+                data.forEach(comment => {
+                    addComment(
+                        comment.content,
+                        comment.parentCommentId,
+                        comment.userName,
+                        comment.profileImage,
+                        comment.commentId,
+                        comment.userId,
+                        comment.isLiked,
+                        comment.likeCount
+                    );
+                });
+            });
+
+        // 댓글 추가
+        function submitComment(content, parentCommentId) {
+            if (!requireLogin()) return;
+
+            fetch(`/api/comment/add/${postId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({content, parentCommentId})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        addComment(data.comment.content, data.comment.parentCommentId, data.userName, data.profileImage, data.comment.commentId, data.comment.userId, false, 0);
+                        commentCountSpan.textContent = data.commentCount;
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('댓글 추가 중 오류 발생');
+                });
+        }
+
+        // 댓글 삭제
+        function deleteComment(commentId) {
+            fetch(`/api/comment/delete/${commentId}`, {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'}
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.querySelector(`.comment-item[data-comment-id="${commentId}"]`).remove();
+                        fetch(`/api/comment/get/${postId}`)
+                            .then(res => res.json())
+                            .then(comments => commentCountSpan.textContent = comments.length);
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('댓글 삭제 중 오류 발생');
+                });
+        }
+
+        // 댓글 수정
+        function updateComment(commentId, newContent) {
+            fetch(`/api/comment/modify/${commentId}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({content: newContent})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const commentDiv = document.querySelector(`.comment-item[data-comment-id="${commentId}"] .comment-content`);
+                        commentDiv.textContent = data.comment.content;
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('댓글 수정 중 오류 발생');
+                });
+        }
+
+        // 댓글 렌더링
+        function addComment(content, parentCommentId, userName, profileImage, commentId, userId, isLiked, likeCount) {
+            const commentDiv = document.createElement('div');
+            commentDiv.classList.add('comment-item');
+            commentDiv.dataset.commentId = commentId;
+
+            console.log('currentUserId:', currentUserId, 'comment userId:', userId);
+            const isOwner = currentUserId && userId === currentUserId;
+            console.log('isOwner:', isOwner);
+
+            const isLikedBoolean = Boolean(isLiked);
+            console.log(`Comment ID: ${commentId}, isLiked: ${isLikedBoolean}, likeCount: ${likeCount}, isOwner: ${isOwner}`);
+
+            commentDiv.innerHTML = `
+                <div class="comment-header">
+                    <img src="${profileImage}" alt="프로필" class="comment-profile-img">
+                    <span class="comment-username">${userName}</span>
+                </div>
+                <div class="comment-content">${content}</div>
+                <span class="reply-btn">답글</span>
+                ${isOwner ? '<button class="edit-btn">수정</button><button class="delete-btn">삭제</button>' : ''}
+                <div class="edit-input" style="display: none;">
+                    <textarea class="edit-textarea">${content}</textarea>
+                    <button class="save-btn">저장</button>
+                    <button class="cancel-btn">취소</button>
+                </div>
+                <div class="reply-input">
+                    <textarea placeholder="답글을 입력하세요..."></textarea>
+                    <button>전송</button>
+                </div>
+                <div class="replies"></div>
+                <label class="ui-bookmark2">
+                    <input type="checkbox" class="like-checkbox" ${isLikedBoolean ? 'checked' : ''}>
+                    <div class="bookmark">
+                        <svg viewBox="0 0 16 16" style="margin-top:4px" class="bi bi-heart-fill" height="20" width="20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314" fill-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </label>
+                <span class="like-count">${likeCount || 0}</span>
+            `;
+
+            // 댓글 좋아요
+            const likeCheckbox = commentDiv.querySelector('.like-checkbox');
+            const likeCountSpan = commentDiv.querySelector('.like-count');
+            likeCheckbox.addEventListener('change', function () {
+                console.log('Like checkbox changed for commentId:', commentId, 'isOwner:', isOwner);
+                const isChecked = this.checked;
+                const url = isChecked ? `/api/comment/like/${commentId}` : `/api/comment/unlike/${commentId}`;
+                console.log('Requesting:', url, 'Method:', isChecked ? 'POST' : 'DELETE');
+                fetch(url, {
+                    method: isChecked ? 'POST' : 'DELETE',
+                    headers: {'Content-Type': 'application/json'}
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            likeCountSpan.textContent = data.likeCount;
+                        } else {
+                            this.checked = !isChecked;
+                            alert(data.message || '좋아요 처리 실패');
+                        }
+                    })
+                    .catch(error => {
+                        this.checked = !isChecked;
+                        console.error('Error:', error);
+                        alert('네트워크 오류');
+                    });
+            });
+
+            if (parentCommentId) {
+                const parentComment = document.querySelector(`.comment-item[data-comment-id="${parentCommentId}"] .replies`);
+                if (parentComment) parentComment.appendChild(commentDiv);
+            } else {
+                commentList.appendChild(commentDiv);
+            }
+
+            // 답글 버튼
+            const replyBtn = commentDiv.querySelector('.reply-btn');
+            const replyInput = commentDiv.querySelector('.reply-input');
+            replyBtn.addEventListener('click', () => {
+                replyInput.style.display = replyInput.style.display === 'block' ? 'none' : 'block';
+            });
+
+            const replySubmitBtn = commentDiv.querySelector('.reply-input button');
+            const replyText = commentDiv.querySelector('.reply-input textarea');
+            replySubmitBtn.addEventListener('click', () => {
+                const replyContent = replyText.value.trim();
+                if (replyContent) {
+                    submitComment(replyContent, commentId);
+                    replyText.value = '';
+                    replyInput.style.display = 'none';
+                }
+            });
+
+            // 수정 버튼
+            if (isOwner) {
+                const editBtn = commentDiv.querySelector('.edit-btn');
+                const editInput = commentDiv.querySelector('.edit-input');
+                const commentContent = commentDiv.querySelector('.comment-content');
+                const saveBtn = commentDiv.querySelector('.save-btn');
+                const cancelBtn = commentDiv.querySelector('.cancel-btn');
+                const editTextarea = commentDiv.querySelector('.edit-textarea');
+
+                editBtn.addEventListener('click', () => {
+                    commentContent.style.display = 'none';
+                    editBtn.style.display = 'none';
+                    replyBtn.style.display = 'none';
+                    editInput.style.display = 'block';
+                });
+
+                saveBtn.addEventListener('click', () => {
+                    const newContent = editTextarea.value.trim();
+                    if (newContent) {
+                        updateComment(commentId, newContent);
+                        commentContent.textContent = newContent;
+                        toggleEditMode(false);
+                    }
+                });
+
+                cancelBtn.addEventListener('click', () => {
+                    toggleEditMode(false);
+                });
+
+                function toggleEditMode(isEditing) {
+                    commentContent.style.display = isEditing ? 'none' : 'block';
+                    editBtn.style.display = isEditing ? 'none' : 'inline';
+                    replyBtn.style.display = isEditing ? 'none' : 'inline';
+                    editInput.style.display = isEditing ? 'block' : 'none';
+                }
+            }
+
+            // 삭제 버튼
+            if (isOwner) {
+                const deleteBtn = commentDiv.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', () => {
+                    if (confirm('정말 삭제하시겠습니까?')) {
+                        deleteComment(commentId);
+                    }
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>

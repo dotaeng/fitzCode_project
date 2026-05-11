@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fitzCode</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" th:href="@{/css/admin/dashboard.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin/managerSidebar.css}"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="dashboard-container">
+    <!-- 사이드바 -->
+    <div th:replace="~{fragments/managerSidebar :: sidebar}"></div>
+
+    <!-- 헤더 -->
+    <div class="top-container">
+        <div class="user-nav">
+            <div class="timer-section">
+                <span id="session-timer" class="session-timer">30:00</span>
+                <button id="extend-session-btn" class="extend-btn">시간 연장</button>
+            </div>
+            <a href="/" class="home-btn">
+                <img src="/img/home.png" alt="Home" class="home-icon" />
+            </a>
+            <button class="notification" id="adminNotificationBell">
+                <div class="bell-container">
+                    <div class="bell"></div>
+                </div>
+            </button>
+            <div class="notification-dropdown" id="adminNotificationDropdown" style="display: none;">
+            </div>
+            <div class="user-info">
+                <img src="/img/default-profile.png" alt="User Profile" class="user-image" />
+                <span class="user-name" th:text="${loggedUserName}"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 콘텐츠 영역 -->
+    <div class="content-container">
+        <!-- KPI -->
+        <div th:replace="~{fragments/kpis :: kpiCards}"></div>
+
+        <!-- 첫 번째 줄: 1대1 문의 상태 및 등급별 회원 비율 -->
+        <div class="charts-row-1">
+            <div class="chart-box">
+                <div th:replace="~{fragments/inquiryDoughnut :: inquiryDoughnut(inquiryStatusCounts=${inquiryStatusCounts})}"></div>
+            </div>
+            <div class="chart-box">
+                <div th:replace="~{fragments/memberTierPieChart :: memberTierPieChart}"></div>
+            </div>
+        </div>
+
+        <!-- 두 번째 줄: 주간 신규 가입자 수 및 1주일간 방문자 현황 -->
+        <div class="charts-row-2">
+            <div class="chart-box weekly-users-chart">
+                <div th:replace="~{fragments/weeklyNewUsers :: weeklyNewUsersChart}"></div>
+            </div>
+            <div class="chart-box weekly-visitors-chart">
+                <div th:replace="~{fragments/weeklyVisitorsChart :: weeklyVisitorsChart}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/admin/adminHeader.js}"></script>
+<script th:src="@{/js/admin/adminNotifications.js}"></script>
+</body>
+</html>

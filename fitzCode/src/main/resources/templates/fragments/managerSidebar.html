@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fitzCode</title>
+  <link rel="stylesheet" th:href="@{/css/admin/managerSidebar.css}"/>
+</head>
+<body>
+<!-- 사이드바 -->
+<div th:fragment="sidebar" class="adminSidebarWrap">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <!-- 로고 -->
+      <!-- <a th:href="@{/}">
+          <img th:src="@{/img/fitzLogo.png}" alt="관리자 로고" class="sidebar-logo">
+      </a> -->
+    </div>
+
+    <!-- 현재 페이지 URI 가져오기 -->
+    <th:block th:with="currentUri=${currentUri}">
+      <!-- 대시보드 -->
+      <div class="sidebar-section sidebar-section-dashboard">
+        <h3>
+          <a th:href="@{/admin/dashboard}"
+             th:classappend="${currentUri == '/admin/dashboard'} ? 'active'">
+            관리자 대시보드
+          </a>
+        </h3>
+      </div>
+
+      <!-- 판매 관리 -->
+      <div class="sidebar-section">
+        <h3>판매 관리</h3>
+        <div class="submenu">
+          <a th:href="@{/admin/sales}"
+             th:classappend="${currentUri == '/admin/sales'} ? 'active'">
+            판매 현황
+          </a>
+          <a th:href="@{/admin/products/refund}"
+             th:classappend="${currentUri == '/admin/products/refund'} ? 'active'">
+            환불
+          </a>
+          <a th:href="@{/admin/orders}"
+             th:classappend="${currentUri == '/admin/orders'} ? 'active'">
+            주문 및 배송
+          </a>
+        </div>
+      </div>
+
+      <!-- 회원 관리 -->
+      <div class="sidebar-section">
+        <h3>회원 관리</h3>
+        <div class="submenu">
+          <a th:href="@{/admin/members}"
+             th:classappend="${currentUri == '/admin/members'} ? 'active'">
+            회원 목록
+          </a>
+        </div>
+      </div>
+
+      <!-- 상품 관리 -->
+      <div class="sidebar-section">
+        <h3>상품 관리</h3>
+        <div class="submenu">
+          <a th:href="@{/admin/products}"
+             th:classappend="${currentUri == '/admin/products'} ? 'active'">
+            상품 관리
+          </a>
+        </div>
+        <div class="submenu">
+          <a th:href="@{/admin/pick}"
+             th:classappend="${currentUri == '/admin/pick'} ? 'active'">
+            추천 상품 관리
+          </a>
+        </div>
+      </div>
+
+      <!-- 쿠폰 관리 -->
+      <div class="sidebar-section">
+        <h3>쿠폰 관리</h3>
+        <div class="submenu">
+          <a th:href="@{/admin/coupon}"
+             th:classappend="${currentUri == '/admin/coupon'} ? 'active'">
+            쿠폰 관리
+          </a>
+        </div>
+      </div>
+
+      <!-- 공지사항 관리 -->
+      <div class="sidebar-section">
+        <h3>공지사항 관리</h3>
+        <div class="submenu">
+          <a th:href="@{/admin/notice}"
+             th:classappend="${currentUri == '/admin/notice'} ? 'active'">
+            공지사항 목록
+          </a>
+          <a th:href="@{/admin/notice/add}"
+             th:classappend="${currentUri == '/admin/notice/add'} ? 'active'">
+            공지사항 작성
+          </a>
+        </div>
+      </div>
+
+      <!-- 문의 관리 -->
+      <div class="sidebar-section">
+        <h3>1:1 문의 관리</h3>
+        <div class="submenu">
+          <a th:href="@{/admin/inquiries}"
+             th:classappend="${currentUri == '/admin/inquiries'} ? 'active'">
+            1:1 문의 목록
+          </a>
+        </div>
+      </div>
+
+      <!-- 로그 관리 -->
+      <div class="sidebar-section">
+        <h3>로그 관리</h3>
+        <div class="submenu">
+          <a th:href="@{/admin/logs/logManagement}"
+             th:classappend="${currentUri == '/admin/logs/logManagement'} ? 'active'">
+            ERROR / 로그인
+          </a>
+        </div>
+      </div>
+    </th:block>
+  </div>
+</div>
+</body>
+</html>

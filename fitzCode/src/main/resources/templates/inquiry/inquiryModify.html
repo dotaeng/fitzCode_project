@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>fitzCode</title>
+    <link rel="stylesheet" th:href="@{/css/inquiry/inquiryModify.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+<body>
+
+<!-- header -->
+<div th:replace="~{fragments/header}"></div>
+
+<br><br><br><br>
+<div class="mypageContainer">
+    <!-- navi -->
+    <div th:replace="~{fragments/mypageNavi}"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="mypageContent">
+        <h2>1:1 문의 수정</h2>
+        <div id="hr"></div>
+        <div class="inquiryContainer">
+            <form th:action="@{/inquiry/modify}" method="post" enctype="multipart/form-data">
+                <div class="inquiryContent">
+                    <div class="subTitle">
+                        <div th:text="'[' + ${inquiryDTO.category.description} + '] '" id="categoryCode"/>
+                        <input type="text" name="subject" placeholder="제목을 입력해주세요" id="subject" required>
+                    </div>
+                    <div class="inquiryData">
+                        <br>
+                        <span th:text="'작성자 : ' + ${userDTO.getUserName()} + ' | 연락처 : ' + ${userDTO.phoneNumber}"
+                              id="userInfo"></span>
+                        <textarea id="content" name="content" placeholder="문의사항" rows="6" cols="58"></textarea>
+                        <div class="buttons">
+                            <span>문의할 상품 선택하기 >>> </span>
+                            <span>
+                                <button type="button" class="btn btn-outline-secondary"
+                                        id="searchProduct">상품검색해서 찾기</button>
+                                <button type="button" class="btn btn-outline-secondary" id="searchOrderList"
+                                        th:data-user-id="${userDTO.userId}">주문내역에서 찾기</button>
+                             </span>
+                        </div>
+                        <table id="searchedData">
+                        </table>
+                        <div class="imageContainer">
+                            <div>
+                                <label for="images"><img src="https://cdn-icons-png.flaticon.com/512/305/305086.png"/>
+                                    사진 첨부</label>
+                                <button id="addImage">사진 추가하기</button>
+                            </div>
+                            <br>
+                            <!--                <label for="images" class="uploadFile"><img src="https://cdn-icons-png.flaticon.com/512/992/992651.png"></label>-->
+                            <input type="file" id="images" name="files">
+                        </div>
+                    </div>
+                    <input type="hidden" name="inquiryId" th:value="${inquiryDTO.inquiryId}">
+                    <input type="hidden" name="userId" th:value="${userDTO.userId}" id="userId">
+                </div>
+                <div class="finalButtons">
+                    <a th:href="@{/inquiry/inquiryList}">목록으로</a>
+                    <button type="submit" class="registerBtn">등록하기</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+<br>
+<br>
+
+<!-- 상품 검색 모달 -->
+<div class="hidden" id="searchProductModalContainer">
+    <div id="searchProductModalContent">
+        <div class="searchProductModalCloseBtn">&times;</div>
+        <div>
+            <input type="text" placeholder="상품명으로 검색하기" name="productName" id="userInputProductName">
+        </div>
+        <table class="table" id="productData">
+        </table>
+    </div>
+</div>
+
+<!-- 주문 내역 모달 -->
+<div class="hidden" id="orderListModalContainer">
+    <div id="orderListModalContent">
+        <div class="orderListModalCloseBtn">&times;</div>
+        <h2>주문내역</h2>
+        <table class="table" id="orderList">
+        </table>
+    </div>
+</div>
+
+
+<br>
+<br>
+<br>
+<!-- footer -->
+<div th:replace="~{fragments/footer}"></div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script th:src="@{/js/inquiry/inquiryForm.js}"></script>
+<script th:src="@{/js/admin/notifications.js}"></script>
+<script th:src="@{/js/admin/headerNotification.js}"></script>
+</html>

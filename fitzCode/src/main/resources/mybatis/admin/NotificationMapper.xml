@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.fitzcode.common.mapper.UserNotificationMapper">
+
+    <!-- 모든 사용자 ID 조회 -->
+    <select id="getAllUserIds" resultType="int">
+        SELECT user_id AS userId
+        FROM USER
+    </select>
+
+    <!-- 모든 관리자 ID 조회 -->
+    <select id="getAllAdminIds" resultType="int">
+        SELECT user_id AS userId
+        FROM USER
+        WHERE role_id = #{roleId}
+    </select>
+
+    <!-- 알림 삽입 -->
+    <insert id="insertNotification" parameterType="kr.co.fitzcode.common.dto.NotificationDTO" useGeneratedKeys="true" keyProperty="notificationId">
+        INSERT INTO NOTIFICATION (user_id, type, message, related_id, created_at, is_read)
+        VALUES (#{userId}, #{type}, #{message}, #{relatedId}, CURRENT_TIMESTAMP, FALSE)
+    </insert>
+
+    <!-- 사용자별 알림 조회 -->
+    <select id="getNotificationsByUserId" parameterType="int" resultType="kr.co.fitzcode.common.dto.NotificationDTO">
+        SELECT notification_id AS notificationId, user_id AS userId, type AS type,
+        message AS message, is_read AS isRead, created_at AS createdAt,
+        read_at AS readAt, related_id AS relatedId
+        FROM NOTIFICATION
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 알림 삭제 -->
+    <delete id="deleteNotification" parameterType="int">
+        DELETE FROM NOTIFICATION
+        WHERE notification_id = #{notificationId}
+    </delete>
+
+    <!-- 모든 알림 삭제 -->
+    <delete id="deleteAllNotifications" parameterType="int">
+        DELETE FROM NOTIFICATION
+        WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 모든 알림 읽음 처리 -->
+    <update id="markAllAsRead" parameterType="int">
+        UPDATE NOTIFICATION
+        SET is_read = TRUE,
+        read_at = CURRENT_TIMESTAMP
+        WHERE user_id = #{userId}
+        AND is_read = FALSE
+    </update>
+
+    <!-- 중복 알림 확인 -->
+    <select id="existsNotification" parameterType="map" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM NOTIFICATION
+        WHERE user_id = #{userId} AND type = #{type} AND related_id = #{relatedId}
+    </select>
+</mapper>

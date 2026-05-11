@@ -1,0 +1,62 @@
+.verifyContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.myInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    font-size: 13.3px;
+    margin-top: 50px;
+}
+
+.verifyForm {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    align-items: stretch;
+}
+
+.verifyForm div {
+    display: flex
+;
+    align-items: center;
+    justify-content: space-between;
+    width: 98%;
+    align-self: center;
+}
+
+.verifyForm div p {
+    margin-right: 10px;
+}
+
+img {
+    width: 40px;
+}
+
+input {
+    border: 1px solid #c5c5c5;
+    padding: 8px 20px;
+    border-radius: 20px;
+    width: 60%;
+}
+
+button {
+    margin: 30px 0px;
+    background: #eeeeee;
+    border: 1px solid #c9c9c9;
+    padding: 10px;
+    border-radius: 20px;
+    color: #626262;
+    align-self: center;
+    width: 98%;
+    cursor: pointer;
+}
+
+button:hover{
+    background: #2f2f32;
+    color: white;
+}
