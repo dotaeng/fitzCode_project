@@ -16,7 +16,7 @@ public interface CommunityMapper {
     List<ProductTag> getProductTagsByPostId(int postId);
     List<Map<String, Object>> getOtherStylesByUserId(Map<String, Object> params);
     List<PostImageDTO> getPostImagesByPostId(int postId);
-    List<Map<String, Object>> getAllPosts(String styleCategory);
+    List<Map<String, Object>> getAllPosts(Map<String, Object> params);
     PostDTO getPostById(int id);
     void updatePost(PostDTO postDTO, List<Long> productIdList, List<String> imageUrls);
     List<PostDTO> findByStyleCategory(String styleCategory);

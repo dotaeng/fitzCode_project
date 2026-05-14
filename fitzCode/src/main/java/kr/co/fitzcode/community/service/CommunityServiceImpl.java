@@ -94,9 +94,14 @@ public class CommunityServiceImpl implements CommunityService {
         return postImages != null ? postImages : Collections.emptyList();
     }
 
+    // 게시물 리스트 조회
     @Override
-    public List<Map<String, Object>> getAllPosts(String styleCategory) {
-        return communityMapper.getAllPosts(styleCategory);
+    public List<Map<String, Object>> getAllPosts(String styleCategory, int userId) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("styleCategory", styleCategory);
+        params.put("userId", userId);
+
+        return communityMapper.getAllPosts(params);
     }
 
     @Override

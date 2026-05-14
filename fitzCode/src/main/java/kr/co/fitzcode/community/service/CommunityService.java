@@ -14,7 +14,7 @@ public interface CommunityService {
     List<ProductTag> getProductTagsByPostId(int postId);
     List<Map<String, Object>> getOtherStylesByUserId(int userId, int excludePostId);
     List<PostImageDTO> getPostImagesByPostId(int postId);
-    List<Map<String, Object>> getAllPosts(String styleCategory);
+    List<Map<String, Object>> getAllPosts(String styleCategory, int userId);
     PostDTO getPostById(int id);
     void updatePost(PostDTO postDTO, List<Long> productIdList, List<MultipartFile> images) throws IOException;
     List<PostDTO> findByStyleCategory(String styleCategory);

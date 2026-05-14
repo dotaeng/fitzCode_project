@@ -61,19 +61,39 @@
     </select>
 
     <!-- 모든 게시물 조회 -->
-    <select id="getAllPosts" parameterType="String" resultType="map">
-        SELECT p.post_id, p.user_id, u.user_name, u.profile_image, p.style_category, p.title, p.content,
-        p.thumbnail_image_url, p.like_count, p.comment_count, p.view_count, p.save_count,
-        p.created_at, p.updated_at
+    <select id="getAllPosts" parameterType="map" resultType="map">
+        SELECT
+        p.post_id,
+        p.user_id,
+        u.user_name,
+        u.profile_image,
+        p.style_category,
+        p.title,
+        p.content,
+        p.thumbnail_image_url,
+        p.like_count,
+        p.comment_count,
+        p.view_count,
+        p.save_count,
+        p.created_at,
+        p.updated_at,
+        CASE
+        WHEN pl.post_id IS NULL THEN false
+        ELSE true
+        END AS isLiked
         FROM POST p
         JOIN USER u ON p.user_id = u.user_id
+        LEFT JOIN POST_LIKE pl
+        ON p.post_id = pl.post_id
+        AND pl.user_id = #{userId}
         <where>
-            <if test="_parameter != null and _parameter != ''">
-                AND p.style_category LIKE CONCAT('%', #{_parameter}, '%')
+            <if test="styleCategory != null and styleCategory != ''">
+                AND p.style_category LIKE CONCAT('%', #{styleCategory}, '%')
             </if>
         </where>
         ORDER BY p.post_id DESC
     </select>
+
 
     <!-- postId로 이미지 조회 -->
     <select id="getPostImagesByPostId" resultType="PostImageDTO">

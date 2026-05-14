@@ -32,16 +32,12 @@ public class CommunityController {
     public String getCommunityList(
             @RequestParam(value = "category", required = false, defaultValue = "All") String category,
             Model model, HttpSession session) {
+
         String styleCategory = category.equals("All") ? null : category;
-        List<Map<String, Object>> posts = communityService.getAllPosts(styleCategory);
         UserDTO userDTO = (UserDTO) session.getAttribute("dto");
         int userId = (userDTO != null) ? userDTO.getUserId() : -1;
 
-        for (Map<String, Object> post : posts) {
-            int postId = (int) post.get("post_id");
-            boolean isLiked = userId != -1 && communityService.isLiked(postId, userId);
-            post.put("isLiked", isLiked);
-        }
+        List<Map<String, Object>> posts = communityService.getAllPosts(styleCategory, userId);
 
         model.addAttribute("posts", posts);
         model.addAttribute("isLoggedIn", userDTO != null);
@@ -117,12 +113,18 @@ public class CommunityController {
         List<ProductTag> productTags = communityService.getProductTagsByPostId(postId);
         List<Map<String, Object>> otherStyles = communityService.getOtherStylesByUserId(postUserId, postId);
         List<PostImageDTO> postImages = communityService.getPostImagesByPostId(postId);
-        PostDTO dto = communityService.getPostById(postId);
+//        PostDTO dto = communityService.getPostById(postId);
+
+//        boolean isLiked = currentUserId != -1 && communityService.isLiked(postId, currentUserId);
+//        int likeCount = communityService.countPostLikes(postId);
+//        boolean isSaved = currentUserId != -1 && communityService.isSaved(postId, currentUserId);
+//        int saveCount = communityService.countPostSaves(postId);
 
         boolean isLiked = currentUserId != -1 && communityService.isLiked(postId, currentUserId);
-        int likeCount = communityService.countPostLikes(postId);
+        int likeCount = ((Number) post.get("like_count")).intValue();
+
         boolean isSaved = currentUserId != -1 && communityService.isSaved(postId, currentUserId);
-        int saveCount = communityService.countPostSaves(postId);
+        int saveCount = ((Number) post.get("save_count")).intValue();
 
         model.addAttribute("post", post);
         model.addAttribute("productTags", productTags);
